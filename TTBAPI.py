@@ -115,6 +115,5 @@ class TTBAPI:
         
 if __name__ == '__main__':
     api = TTBAPI()
+
     print(api.validate_course('CSC148H5', 'S', 'LEC0101'))
-    
-    print(api.check_for_free_seats('CSC148H5', 'S', 'LEC0101'))

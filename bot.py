@@ -229,4 +229,4 @@ def validate_phone_number(phone_number: str) -> bool:
     number = phonenumbers.parse(phone_number, "CA")
     return phonenumbers.is_valid_number_for_region(number, "CA")
 
-ttb.run(os.getenv('DEVTOKEN'))
+ttb.run(os.getenv('DISCORD'))

@@ -1,3 +1,7 @@
 requests
 nextcord
 python-dotenv
+instagrapi
+pymongo[srv]
+twilio
+

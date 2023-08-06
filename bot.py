@@ -57,7 +57,7 @@ contact_methods = {"instagram": contact_user_instagram,
                    "phone": contact_user_sms}
 
 
-@tasks.loop(seconds=1)
+@tasks.loop(seconds=60)
 async def scrape():
     """
     Method which actively checks the UofT API for changes in course status.
@@ -129,9 +129,9 @@ async def help(interaction: nextcord.Interaction):
     embed = nextcord.Embed(
         title="TTBTrackr Help", description="A bot which tracks UofT courses for you and notifies you when a spot opens up", color=nextcord.Color.blue())
     embed.add_field(name="Setup", value="To setup or update your profile, use /profile. This command is required to be run before adding courses to be tracked. TTBTrackr contacts you over Discord DMs by default, however can also be configured to send you a text message or Instagram DM. While not required, they are reccomended. If you don't feel comfortable, no worries! TTBTrackr can run perfectly fine without them!", inline=False)
-    embed.add_field("Adding Courses", value="To add a course to be tracked, use /track. You will need to provide the course code (With H/Y and campus codes), semester, and activity code you want to track. For example, if you want to track CSC148H5 LEC0101 in the Fall, you would use /track CSC148H5 LEC0101 F. You can find the course code and activity code on the UofT timetable website. The semester is either F, S, or Y for Fall, Winter, or Full Year respectively.", inline=False)
-    embed.add_field("Removing Courses", value="To remove a course from being tracked, use /untrack. You will need to provide the course code (With H/Y and campus codes), semester, and activity code you want to remove. For example, if you want to remove CSC148H5 LEC0101 in the Fall, you would use /untrack CSC148H5 LEC0101 F. You can view all the courses you're tracking by using /viewtracked", inline=False)
-    embed.add_field("Viewing tracked courses",
+    embed.add_field(name="Adding Courses", value="To add a course to be tracked, use /track. You will need to provide the course code (With H/Y and campus codes), semester, and activity code you want to track. For example, if you want to track CSC148H5 LEC0101 in the Fall, you would use /track CSC148H5 LEC0101 F. You can find the course code and activity code on the UofT timetable website. The semester is either F, S, or Y for Fall, Winter, or Full Year respectively.", inline=False)
+    embed.add_field(name="Removing Courses", value="To remove a course from being tracked, use /untrack. You will need to provide the course code (With H/Y and campus codes), semester, and activity code you want to remove. For example, if you want to remove CSC148H5 LEC0101 in the Fall, you would use /untrack CSC148H5 LEC0101 F. You can view all the courses you're tracking by using /viewtracked", inline=False)
+    embed.add_field(name="Viewing tracked courses",
                     value="To view all the courses you're tracking, use /viewtracked. This will send you a list of all the courses you're tracking", inline=False)
     await interaction.response.send_message(embed=embed)
 

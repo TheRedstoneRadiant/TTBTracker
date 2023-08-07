@@ -37,21 +37,24 @@ class Mongo:
         update = {"$pull": {"activity": {"courseCode": course_code, "Semester": semester, "Activity": activity}}}
         collection.update_one(query, update)
 
-    def add_user(self, user_id: int, profile: dict[str, str]):
+    def add_user(self, user_id: int, profile: dict[str, str], campus: str = "UofT"):
         """
         Add a new user to the database.
 
         Precondition: user_id does not exist in the database.
         """
         collection = self.db["users"]
-        collection.insert_one({"_id": user_id, "activity": [], "profile": profile})
+        collection.insert_one({"_id": user_id, "activity": [], "profile": profile, "campus": campus})
 
     def update_user_profile(self, user_id: int, profile: dict[str, str]):
         """
         Updates a user's profile.
         """
+        current_profile = self.get_user_profile(user_id)
+        for key, value in profile.items():
+            current_profile[key] = value
         collection = self.db["users"]
-        collection.update_one({"_id": user_id}, {"$set": {"profile": profile}})
+        collection.update_one({"_id": user_id}, {"$set": {"profile": current_profile}})
 
     def get_user_profile(self, user_id: int) -> Optional[dict[str, str]]:
         """
@@ -79,12 +82,12 @@ class Mongo:
         user_data = collection.find_one({"_id": user_id})
         return user_data.get("activity", [])
 
-    def get_all_users(self) -> List[int]:
+    def get_all_users(self, module="UofT") -> List[int]:
         """
-        Get a list of all user IDs in the database.
+        Get a list of all user IDs in the database that have a specific module.
         """
         collection = self.db["users"]
-        return [user["_id"] for user in collection.find()]
+        return [user["_id"] for user in collection.find({"campus": module})]
 
 
     def is_user_tracking_activity(self, user_id: int, course_code: str, semester: str, activity: str) -> bool:
@@ -102,6 +105,14 @@ class Mongo:
         """
         collection = self.db["users"]
         return bool(collection.count_documents({"_id": user_id}) > 0)
+
+    def get_campus(self, user_id: int) -> str:
+        """
+        Get the campus of a user.
+        Precondition: user_id exists in the database.
+        """
+        collection = self.db["users"]
+        return collection.find_one({"_id": user_id}).get("campus", None)
 
 if __name__ == "__main__":
     db_url = os.getenv("PYMONGO")  # Replace with your MongoDB URL

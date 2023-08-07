@@ -80,11 +80,13 @@ class TTBAPI:
             for section in course:
                 if activity == section['name']:
                     return True
-            # If we're here, the activity is not in the course
-            raise Exception("Activity not in course")
         except:
             # If any error is raised, the course is invalid
-            return False
+            raise CourseNotFoundException()
+        # If we're here, the activity is not in the course
+        raise InvalidActivityException()
+
+
 
     def check_for_free_seats(self, course_code: str, semester: str, activity: str) -> bool:
         """
@@ -99,9 +101,12 @@ class TTBAPI:
 
         response = response.json()
         course = response['payload']['pageableCourse']['courses'][0]
-        activity = [section for section in course['sections']
-            if section['name'] == activity][0]
-        return activity['maxEnrolment'] > activity['currentEnrolment']
+        try:
+            activity = [section for section in course['sections']
+                if section['name'] == activity][0]
+        except:
+            raise InvalidActivityException()
+        return activity['maxEnrolment'] > activity['currentEnrolment'] and activity['openLimitInd'] == 'N'
         
     def get_name_from_code(self, course_code: str, semester: str) -> str:
         self.json_data['courseCodeAndTitleProps']['courseCode'] = course_code
@@ -112,8 +117,20 @@ class TTBAPI:
         response = response.json()
         course = response['payload']['pageableCourse']['courses'][0]
         return course['name']
-        
+
+class CourseNotFoundException(Exception):
+    """
+    Exception which is raised when a course is not found in the TTB API
+    """
+    pass
+
+class InvalidActivityException(Exception):
+    """
+    Exception which is raised when an activity is not found in the TTB API
+    """
+    pass
+
 if __name__ == '__main__':
     api = TTBAPI()
 
-    print(api.validate_course('CSC148H5', 'S', 'LEC0101'))
+    print(api.check_for_free_seats("CSC311H5", "S", "LEC0102"))

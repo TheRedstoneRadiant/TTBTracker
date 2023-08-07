@@ -17,14 +17,15 @@ class UserContact:
 
     def __init__(self) -> None:
         self.instagram = instagrapi.Client()
-        self.instagram.login(os.getenv("INSTAUSER"), os.getenv("INSTAPASS"))
+        # self.instagram.login(os.getenv("INSTAUSER"), os.getenv("INSTAPASS"))
         account_sid = 'AC2b1a7015a561484c6b94c1550f79c011'
         auth_token = os.getenv("TWILIOAUTH")
         self.twilio = twilio.rest.Client(account_sid, auth_token)
 
         self.contact_methods = {
             "instagram": self._send_insta_message,
-            "phone": self._send_sms
+            "phone": self._send_sms,
+            "call": self._make_phonecall
         }
 
     def contact_user(self, user_profile: dict[str, str], message: str) -> None:
@@ -49,4 +50,14 @@ class UserContact:
             from_='+18506600835',
             body=message,
             to=number
+        )
+
+    def _make_phonecall(self, number: str, message: str) -> None:
+        """
+        Uses Twilio to make a phone call to a user
+        """
+        call = self.twilio.calls.create(
+            twiml=f'<Response><Say>{message}</Say><Hangup/></Response>',
+            to=number,
+            from_='+18506600835'
         )

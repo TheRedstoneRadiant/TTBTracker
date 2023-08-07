@@ -1,0 +1,28 @@
+{
+    "title": ":information_source: TTBTrackr Help",
+    "description": "A bot which tracks UofT courses for you and notifies you when a spot opens up",
+    "color": 3447003,
+    "fields": [
+      {
+        "name": "Setup",
+        "value": "To setup or update your profile, use /profile. This command is required to be run before adding courses to be tracked. TTBTrackr contacts you over Discord DMs by default, however can also be configured to send you a text message or Instagram DM. While not required, they are recommended. If you don't feel comfortable, no worries! TTBTrackr can run perfectly fine without them!",
+        "inline": false
+      },
+      {
+        "name": "Adding Courses",
+        "value": "To add a course to be tracked, use /uoft track. You will need to provide the course code (With H/Y and campus codes), semester, and activity code you want to track. For example, if you want to track CSC148H5 LEC0101 in the Fall, you would use /track CSC148H5 LEC0101 F. You can find the course code and activity code on the UofT timetable website. The semester is either F, S, or Y for Fall, Winter, or Full Year respectively.",
+        "inline": false
+      },
+      {
+        "name": "Removing Courses",
+        "value": "To remove a course from being tracked, use /uoft untrack. You will need to provide the course code (With H/Y and campus codes), semester, and activity code you want to remove. For example, if you want to remove CSC148H5 LEC0101 in the Fall, you would use /untrack CSC148H5 LEC0101 F. You can view all the courses you're tracking by using /viewtracked",
+        "inline": false
+      },
+      {
+        "name": "Viewing tracked courses",
+        "value": "To view all the courses you're tracking, use /uoft list. This will send you a list of all the courses you're tracking",
+        "inline": false
+      }
+    ]
+  }
+  

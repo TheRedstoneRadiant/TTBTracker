@@ -1,13 +1,9 @@
-# File with required classes and methods to interact with the UofT TTB API
-
 import requests
-
-
+from Courses import *
 class TTBAPI:
     """
     Class which abstracts all interactions with the UofT TTB API.
     """
-
     def __init__(self) -> None:
         self.headers = {
             'Accept': 'application/json, text/plain, */*',
@@ -62,31 +58,45 @@ class TTBAPI:
             'direction': 'asc',
         }
 
-    def validate_course(self, course_code: str, semester: str, activity: str) -> bool:
+    def _make_request(self, course_code: str, semester: str) -> dict:
         """
-        Method which checks whether or not the provided course code and activity are valid using the 
-        TTB API
+        Makes a request to the TTB API to get info on a course.
+        Precondition: Coursecode is a valid coursecode, and semester is a valid semester
+        Which coursecode is offered in
         """
         self.json_data['courseCodeAndTitleProps']['courseCode'] = course_code
         self.json_data['courseCodeAndTitleProps']['courseSectionCode'] = semester
         response = requests.post(
         'https://api.easi.utoronto.ca/ttb/getPageableCourses', headers=self.headers, json=self.json_data)
+        return response.json()
 
-        response = response.json()
-        
+    def get_course(self, course_code: str, semester: str) -> Course:
+        """
+        Returns a Course object from the TTB API
+        Raises CourseNotFoundException if the course is deemed to be invalid
+        """
         try:
-            course = response['payload']['pageableCourse']['courses'][0]['sections']
-            # Iterate through all the objects in `course` and check if activity is any of course[x]['name'] for x in range(len(course))
-            for section in course:
-                if activity == section['name']:
-                    return True
-        except:
-            # If any error is raised, the course is invalid
-            raise CourseNotFoundException()
-        # If we're here, the activity is not in the course
-        raise InvalidActivityException()
+            response = self._make_request(course_code, semester)
+            course = response['payload']['pageableCourse']['courses'][0]
+            to_return = Course(course['name'], course['code'], course['sectionCode'])
+            activities = course['sections']
+            for activity in activities:
+                to_return.add_activity(Activity(activity['name'], activity['type'], activity['currentEnrolment'], activity['maxEnrolment'], activity['openLimitInd'] == 'N'))
+            return to_return
+        except IndexError:
+            raise CourseNotFoundException("Invalid course code or semester")
 
-
+    def validate_course(self, coursecode: str, semester: str, activity: str):
+        """
+        Method which validates a coursecode/semester/activity combo
+        """
+        try:
+            course = self.get_course(coursecode, semester)
+            activity = course.get_activity(activity)
+        except CourseNotFoundException:
+            raise CourseNotFoundException("Invalid course code or semester")
+        except KeyError:
+            raise InvalidActivityException("Invalid activity")
 
     def check_for_free_seats(self, course_code: str, semester: str, activity: str) -> bool:
         """
@@ -107,16 +117,7 @@ class TTBAPI:
         except:
             raise InvalidActivityException()
         return activity['maxEnrolment'] > activity['currentEnrolment'] and activity['openLimitInd'] == 'N'
-        
-    def get_name_from_code(self, course_code: str, semester: str) -> str:
-        self.json_data['courseCodeAndTitleProps']['courseCode'] = course_code
-        self.json_data['courseCodeAndTitleProps']['courseSectionCode'] = semester
-        response = requests.post(
-        'https://api.easi.utoronto.ca/ttb/getPageableCourses', headers=self.headers, json=self.json_data)
 
-        response = response.json()
-        course = response['payload']['pageableCourse']['courses'][0]
-        return course['name']
 
 class CourseNotFoundException(Exception):
     """
@@ -133,4 +134,4 @@ class InvalidActivityException(Exception):
 if __name__ == '__main__':
     api = TTBAPI()
 
-    print(api.check_for_free_seats("CSC311H5", "S", "LEC0102"))
+    api.get_course('CSC148H5', 'S')

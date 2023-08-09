@@ -1,137 +1,229 @@
-from pymongo import MongoClient
-from typing import List, Optional
+import os
+from typing import List, Dict, Union
+import pymongo
 import dotenv
 dotenv.load_dotenv("tokens.env")
 
-import os
+DEFAULT_PROFILE_LAYOUT = {"phone_number": "",
+                          "instagram_username": ""}
+
 
 class Mongo:
-    """
-    Class with abstraction of MongoDB database.
-    Allows for easier access to the database.
-    """
-    
-    def __init__(self, db_url: str, db_name: str):
-        self.client = MongoClient(db_url)
-        self.db = self.client[db_name]
-
-    def add_user_activity(self, user_id: int, course_code: str, semester: str, activity: str):
+    def __init__(self, creds: str, database_name: str):
         """
-        Add an activity for a specific user.
-        
-        Precondition: user_id exists in the database.
-        """
-        collection = self.db["users"]
-        query = {"_id": user_id}
-        update = {"$push": {"activity": {"courseCode": course_code, "Semester": semester, "Activity": activity}}}
-        collection.update_one(query, update, upsert=True)
+        Initialize MongoDBProfiles instance.
 
-    def remove_user_activity(self, user_id: int, course_code: str, semester: str, activity: str):
+        :param client: MongoClient instance for MongoDB connection.
+        :param database_name: Name of the MongoDB database.
         """
-        Remove a specific activity for a user.
+        self.client = pymongo.MongoClient(creds)
+        self.db = self.client[database_name]
+        self.profiles_collection = self.db['profiles']
+        self.courses_collection = self.db['courses']
+        self.sections_collection = self.db['sections']
 
-        Precondition: user_id exists in the database, and the activity exists for the user.
+    def is_user_in_db(self, user_id: str) -> bool:
         """
-        collection = self.db["users"]
-        query = {"_id": user_id}
-        update = {"$pull": {"activity": {"courseCode": course_code, "Semester": semester, "Activity": activity}}}
-        collection.update_one(query, update)
+        Check if a user exists in the database.
 
-    def add_user(self, user_id: int, profile: dict[str, str], campus: str = "UofT"):
+        :param user_id: User's Discord ID.
+        :return: True if user exists, False otherwise.
         """
-        Add a new user to the database.
+        return self.profiles_collection.find_one({"_id": user_id}) is not None
 
+    def add_user_to_db(self, user_id: str, profile: Dict[str, str] = DEFAULT_PROFILE_LAYOUT) -> None:
+        """
+        Add a new user to the database with a blank profile.
         Precondition: user_id does not exist in the database.
+        :param user_id: User's Discord ID.
         """
-        collection = self.db["users"]
-        collection.insert_one({"_id": user_id, "activity": [], "profile": profile, "campus": campus})
+        if not self.is_user_in_db(user_id):
+            self.profiles_collection.insert_one(profile)
 
-    def update_user_profile(self, user_id: int, profile: dict[str, str]):
+    def remove_user(self, user_id: str) -> None:
         """
-        Updates a user's profile.
+        Remove a user from the database.
+        Precondition: user_id exists in the database.
+
+        :param user_id: User's Discord ID.
+        """
+        # To delete the user we first have to remove them from the self.courses_collection
+        # Then we can remove them from the self.profiles_collection
+
+        # Get all the activities the user is tracking
+        tracked_activities = self.get_user_tracked_activities(user_id)
+        for activity in tracked_activities:
+            self._remove_user_from_activity(
+                user_id, activity["coursecode"], activity["semester"], activity["activity"])
+
+        self.profiles_collection.delete_one({"_id": user_id})
+
+    def update_user_profile(self, user_id: str, new_profile: Dict[str, Union[str, int]]) -> None:
+        """
+        Update a user's profile.
+        Precondition: user_id exists in the database.
+        :param user_id: User's Discord ID.
+        :param new_profile: Dictionary containing updated profile information.
         """
         current_profile = self.get_user_profile(user_id)
-        for key, value in profile.items():
+        for key, value in new_profile.items():
             current_profile[key] = value
-        collection = self.db["users"]
-        collection.update_one({"_id": user_id}, {"$set": {"profile": current_profile}})
+        self.profiles_collection.update_one(
+            {"_id": user_id}, {"$set": {"profile": current_profile}})
 
-    def get_user_profile(self, user_id: int) -> Optional[dict[str, str]]:
+    def add_tracked_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> None:
         """
-        Returns a user's profile.
-        Preconditions: user_id exists in the database.
-        """
-        return self.db["users"].find_one({"_id": user_id}).get("profile", None)
-
-    def remove_user(self, user_id: int):
-        """
-        Remove a user and all their activities from the database.
-
-        Preconditions: user_id exists in the database.
-        """
-        collection = self.db["users"]
-        collection.delete_one({"_id": user_id})
-
-    def get_user_activities(self, user_id: int) -> List[dict]:
-        """
-        Get the activities for a specific user.
-
-        Preconditions: user_id exists in the database.
-        """
-        collection = self.db["users"]
-        user_data = collection.find_one({"_id": user_id})
-        return user_data.get("activity", [])
-
-    def get_all_users(self, module="UofT") -> List[int]:
-        """
-        Get a list of all user IDs in the database that have a specific module.
-        """
-        collection = self.db["users"]
-        return [user["_id"] for user in collection.find({"campus": module})]
-
-
-    def is_user_tracking_activity(self, user_id: int, course_code: str, semester: str, activity: str) -> bool:
-        """
-        Check if a user is tracking a specific activity.
+        Add a tracked activity to a user's profile.
         Precondition: user_id exists in the database.
+        :param user_id: User's Discord ID.
+        :param course_code: Course code of the tracked activity.
+        :param semester: Semester of the tracked activity.
+        :param activity: Activity type of the tracked activity.
         """
-        collection = self.db["users"]
-        query = {"_id": user_id, "activity": {"$elemMatch": {"courseCode": course_code, "Semester": semester, "Activity": activity}}}
-        return bool(collection.count_documents(query) > 0)
+        self.profiles_collection.update_one(
+            {"_id": user_id},
+            {"$addToSet": {"tracked": {"coursecode": course_code,
+                                       "semester": semester, "activity": activity}}}, upsert=True
+        )
+        self._add_user_to_activity(user_id, course_code, semester, activity)
+
+    def remove_tracked_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> None:
+        """
+        Remove a tracked activity from a user's profile.
+        Precondition: user_id exists in the database and the tracked activity exists in the user's profile.
+        :param user_id: User's Discord ID.
+        :param course_code: Course code of the tracked activity.
+        :param semester: Semester of the tracked activity.
+        :param activity: Activity type of the tracked activity.
+        """
+        self.profiles_collection.update_one(
+            {"_id": user_id},
+            {"$pull": {"tracked": {"coursecode": course_code,
+                                   "semester": semester, "activity": activity}}}
+        )
+        self._remove_user_from_activity(
+            user_id, course_code, semester, activity)
+
+    def get_all_courses(self) -> List[Dict[str, str]]:
+        """
+        Returns all the courses in the courses collection.
+        """
+        return list(self.courses_collection.find({}))
+
+    def is_user_tracking_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> bool:
+        """
+        Return whether a user is tracking a specific activity.
+        """
+        query = {"_id": user_id, "tracked": {"$elemMatch": {"coursecode": course_code, "semester": semester, "activity": activity}}}
+        return bool(self.profiles_collection.count_documents(query) > 0)
     
-    def is_user_in_db(self, user_id: int) -> bool:
+    def get_user_tracked_activities(self, user_id: str) -> List[Dict[str, str]]:
         """
-        Check if a user with the given user ID exists in the database.
-        """
-        collection = self.db["users"]
-        return bool(collection.count_documents({"_id": user_id}) > 0)
-
-    def get_campus(self, user_id: int) -> str:
-        """
-        Get the campus of a user.
+        Get a user's tracked activities.
         Precondition: user_id exists in the database.
+        :param user_id: User's Discord ID.
+        :return: List of dictionaries representing tracked activities.
         """
-        collection = self.db["users"]
-        return collection.find_one({"_id": user_id}).get("campus", None)
+        user_doc = self.profiles_collection.find_one({"_id": user_id})
+        return user_doc.get("tracked", [])
+
+    def get_all_users(self) -> List[str]:
+        """
+        Get a list of all users in the database.
+
+        :return: List of user IDs.
+        """
+        return [user["_id"] for user in self.profiles_collection.find({}, {"_id": 1})]
+
+    def get_user_profile(self, user_id: str) -> Dict[str, Dict[str, str]]:
+        """
+        Get a user's profile.
+
+        :param user_id: User's Discord ID.
+        :return: Dictionary containing user's profile information.
+        """
+        return self.profiles_collection.find_one({"_id": user_id}).get("profile", None)
+
+    def _add_user_to_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> bool:
+        """
+        Add a user to an activity.
+
+        :param semester: Semester code (e.g., "F2023").
+        :param course_code: Course code.
+        :param activity: Activity type (e.g., "Lecture").
+        :param user_id: User's Discord ID.
+        :return: True if user was added, False if already present.
+
+        The database should follow this structure:
+        _id: semester{
+            courses {
+                activity:{
+                    [list of users]
+                }
+            }
+        }
+
+        """
+        update_query = {
+            f"{course_code}.{activity}": user_id
+        }
+
+        result = self.courses_collection.update_one(
+            {"_id": semester},
+            {"$addToSet": update_query},
+            upsert=True
+        )
+
+        # return result.modified_count > 0
+
+    def _remove_user_from_activity(self,  user_id: str, course_code: str, semester: str, activity: str) -> bool:
+        """
+        Remove a user from an activity.
+
+        :param semester: Semester code (e.g., "F2023").
+        :param course_code: Course code.
+        :param activity: Activity type (e.g., "Lecture").
+        :param user_id: User's Discord ID.
+        :return: True if user was removed, False if not found.
+        """
+        update_query = {
+            f"{course_code}.{activity}": user_id
+        }
+
+        result = self.courses_collection.update_one(
+            {"_id": semester},
+            {"$pull": update_query}, upsert=True
+        )
+
+        return result.modified_count > 0
+
+    def add_course_sections(self, course_code: str, semester: str, activity_type: str, sections: list[str]):
+        """
+        Add a list of sections for a course to the database.
+        """
+        update_query = {
+            f"{course_code}.{activity_type}": {"$each": sections}
+        }
+
+        # Update the document in the database
+        self.sections_collection.update_one(
+            {"_id": semester},
+            {"$addToSet": update_query},
+            upsert=True
+        )
+
+    def get_course_sections(self, course_code: str, semester: str, activity_type: str) -> List[str]:
+        """
+        Get a list of sections for a course.
+        """
+        doc = self.sections_collection.find_one({"_id": semester})
+        return doc.get(course_code, {}).get(activity_type, [])
+
 
 if __name__ == "__main__":
-    db_url = os.getenv("PYMONGO")  # Replace with your MongoDB URL
-    db_name = "TTBWatchr"  # Replace with your database name
-
-    # Initialize the abstraction layer
-    db = Mongo(db_url, db_name)
-
-    # Add a user with their activities
-    db.add_user(1234567890)
-    db.add_user_activity(1234567890, "CSC148H1", "Fall 2023", "Tutorial")
-    db.add_user_activity(1234567890, "MAT135Y1", "Summer 2023", "Lecture")
-
-    # Remove an activity for a user
-    # db.remove_user_activity(1234567890, "CSC148H1", "Fall 2023", "Tutorial")
-
-    # # Remove the entire user with all activities
-    # db.remove_user(1234567890)
-
-    # Get user activities and all users
-    print(db.get_user_activities(1234567890))
-    print(db.get_all_users())
+    # Crude tests for each of the methods
+    database_creds = os.getenv("PYMONGO")
+    db = Mongo(database_creds, "TTBTrackrDev")
+    
+    db._add_user_to_activity("123", "CSC148", "F2021", "Lecture")
+    print(db.get_all_courses())

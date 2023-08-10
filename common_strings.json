@@ -47,6 +47,26 @@
         {
             "text": "CS POSt: Battle Royale",
             "type": "competing"
+        },
+        {
+            "text": "students fail their exams",
+            "type": "watching"
+        },
+        {
+            "text": "Course Cramming Simulator",
+            "type": "playing"
+        },
+        {
+            "text": "Join the UTM CS Discord Server",
+            "type": "watching"
+        },
+        {
+            "text": "a commerce and CS student argue about whose POSt is harder",
+            "type": "watching"
+        },
+        {
+            "text": "CCIT Students complain about writing",
+            "type": "listening"
         }
     ]
 }

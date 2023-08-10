@@ -34,6 +34,31 @@ class Course:
         Returns a list of all the names of the activities in this course
         """
         return list(self.activities.keys())
+    
+    def get_tuts(self) -> list[str]:
+        """
+        Returns a list of all the tutorial names
+        """
+        return list(filter(lambda x: "TUT" in x, self.activities.keys()))
+
+    def get_lecs(self) -> list[str]:
+        """
+        Returns a list of all the lecture names
+        """
+        return list(filter(lambda x: "LEC" in x, self.activities.keys()))
+    
+    def get_pra(self) -> list[str]:
+        """
+        Returns a list of all the practical names
+        """
+        return list(filter(lambda x: "PRA" in x, self.activities.keys()))
+    
+    def get_activity_by_type(self, type: str) -> list[str]:
+        """
+        Returns a list of all the activities of the given type
+        Precondition: type is one of "LEC", "TUT", or "PRA"
+        """
+        return list(filter(lambda x: type in x, self.activities.keys()))
 
 class Activity:
     def __init__(self, name: str, type: str, current_enrollment: int, max_enrollment: int, enrollment_controls: bool) -> None:

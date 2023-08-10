@@ -12,7 +12,7 @@ from TTBAPI import TTBAPI, CourseNotFoundException, InvalidActivityException
 from Mongo import Mongo
 from CommonUtils import *
 from UserContact import UserContact
-from Courses import *
+from Courses import Course, Activity
 
 class UofT(commands.Cog):
     def __init__(self, bot: commands.Bot, database: Mongo, contact: UserContact) -> None:
@@ -22,9 +22,9 @@ class UofT(commands.Cog):
         self.database = database
         self.contact = contact
         self.refresh.start()
-    
+        
     # TODO: Rewrite this to conform with the new Mongo API
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=30)
     async def refresh(self) -> None:
         """
         Method which actively checks the UofT API for changes in course status.
@@ -34,10 +34,57 @@ class UofT(commands.Cog):
         # Get a list of all the courses in the database
         courses = self.database.get_all_courses()
         for course in courses:
-            course_object = self.ttbapi.get_course(course["course_code"], course["session"])
-            for session, users in courses[course].items():
-                print(session, users)
+            course_object = self.ttbapi.get_course(course["course_code"], course["semester"])
+            for activity in course['activities']:
+                if "New" in activity:
+                    # If this activity is checking for new sections being opened
+                    await self.check_for_new_sections(course, activity)
+                    continue
+                activity_object = course_object.get_activity(activity)
+                if activity_object.is_seats_free():
+                    # If an activity has seats free, then we need to notify the users
+                    message = f"Seats are availible for {course['course_code']} {activity} in {course['semester']}"
+                    await self._contact_users(course["activities"][activity], course["course_code"], course["semester"], activity, message)
+        
+    async def check_for_new_sections(self, course: dict, activity: str) -> None:
+        course_code = course["course_code"]
+        semester = course["semester"]
+        # Get the current course sections
+        course_object = self.ttbapi.get_course(course_code, semester)
+        activities = course_object.get_activity_by_type(activity[3:])
+        # sort the activities by their section number
+        activities.sort()
+        if not self.database.is_course_sections_in_database(course_code, semester, activity[3:]):
+            self.database.add_course_sections(course_code, semester, activity[3:], activities)   
+            return
+        # If the course has been added to the database, then we need to check if there are any new sections
+        # Get teh sections from the database
+        current_sections = self.database.get_course_sections(course_code, semester, activity[3:])
+        # We can convert the two lists into sets and then find the difference between them
+        # If we have a difference, then we need to notify the users
+        # This is useful because it can tell us what the new lecture code is
+        new_sections = set(activities) - set(current_sections)
+        if new_sections:
+            # Get all the people tracking new sections for this course
+            users = course["activities"][activity]
+            word_mappings = {"NewLEC": "lectures", "NewTUT": "tutorials", "NewPRA": "practicals"}
+            message = f"New sections have been opened for {course_code} {word_mappings[activity]} in {semester}: {', '.join(list(new_sections))}"
+            await self._contact_users(users, course_code, semester, activity, message)
+            # Update the database with the new sections
+            self.database.add_course_sections(course_code, semester, activity[3:], activities)   
 
+    async def _contact_users(self, users: list[int], coursecode: str, semester: str, activity: str, message: str) -> None:
+        """
+        Method which contacts all users in the given list
+        """
+        for user in users:
+            # Step 1: contact via discord
+            discord_user = self.bot.get_user(user)
+            await discord_user.send(message)
+            self.contact.contact_user(self.database.get_user_profile(user), message)
+            # Remove the user from the database
+            self.database.remove_tracked_activity(user, coursecode, semester, activity)
+        
     @nextcord.slash_command(name="uoft", description="Main command for all UofT related commands")
     async def uoft(self, interaction: Interaction):
         """
@@ -155,14 +202,14 @@ class UofT(commands.Cog):
             embed = build_embed_from_json("Embeds/no_tracked_courses.json")
             await interaction.response.send_message(embed=embed)
             return
-        
+        await interaction.response.defer()        
         activities = self.database.get_user_tracked_activities(interaction.user.id)
         embed = nextcord.Embed(title="Tracked Courses",
                             description="Here are all the courses you're tracking", color=nextcord.Color.blue())
         for activity in activities:
-            embed.add_field(name=f"{activity['coursecode']} {activity['activity']} {activity['semester']}", value=self.ttbapi.get_name_from_code(activity['coursecode'], activity['semester']), inline=False)
-            
-        await interaction.response.send_message(embed=embed)
+            embed.add_field(name=f"{activity['coursecode']} {activity['activity']} {activity['semester']}", value=self.ttbapi.get_course(activity['coursecode'], activity['semester']).name, inline=False)
+        
+        await interaction.followup.send(embed=embed)
 
         
 class UofTUtils():

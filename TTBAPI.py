@@ -81,7 +81,7 @@ class TTBAPI:
             to_return = Course(course['name'], course['code'], course['sectionCode'])
             activities = course['sections']
             for activity in activities:
-                to_return.add_activity(Activity(activity['name'], activity['type'], activity['currentEnrolment'], activity['maxEnrolment'], activity['openLimitInd'] == 'N'))
+                to_return.add_activity(Activity(activity['name'], activity['type'], activity['currentEnrolment'], activity['maxEnrolment'], activity['openLimitInd'] != 'N'))
             return to_return
         except IndexError:
             raise CourseNotFoundException("Invalid course code or semester")
@@ -97,27 +97,6 @@ class TTBAPI:
             raise CourseNotFoundException("Invalid course code or semester")
         except KeyError:
             raise InvalidActivityException("Invalid activity")
-
-    def check_for_free_seats(self, course_code: str, semester: str, activity: str) -> bool:
-        """
-        Method which checks for free seats in a course using the TTB API
-        
-        Precondition: course_code, semester, and activity are all valid and apply to each other
-        """
-        self.json_data['courseCodeAndTitleProps']['courseCode'] = course_code
-        self.json_data['courseCodeAndTitleProps']['courseSectionCode'] = semester
-        response = requests.post(
-        'https://api.easi.utoronto.ca/ttb/getPageableCourses', headers=self.headers, json=self.json_data)
-
-        response = response.json()
-        course = response['payload']['pageableCourse']['courses'][0]
-        try:
-            activity = [section for section in course['sections']
-                if section['name'] == activity][0]
-        except:
-            raise InvalidActivityException()
-        return activity['maxEnrolment'] > activity['currentEnrolment'] and activity['openLimitInd'] == 'N'
-
 
 class CourseNotFoundException(Exception):
     """

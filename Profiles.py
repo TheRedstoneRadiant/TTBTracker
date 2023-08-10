@@ -4,7 +4,7 @@ import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands
 from Mongo import Mongo
-from CommonUtils import validate_phone_number, build_embed_from_json
+from CommonUtils import validate_phone_number, build_embed_from_json, sanitize_phone_number
 from Buttons import ConfirmDialogue
 
 class ProfilesCog(commands.Cog, name="Profiles"):
@@ -31,7 +31,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             if not validate_phone_number(cell_number):
                 await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
                 return
-            profile["phone_number"] = cell_number
+            profile["phone_number"] = sanitize_phone_number(cell_number)
             
         if not self.db.is_user_in_db(user_id):
             self.db.add_user_to_db(user_id, profile)

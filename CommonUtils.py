@@ -3,6 +3,9 @@ import nextcord
 import phonenumbers
 
 def build_embed_from_json(json_path: str) -> nextcord.Embed:
+    """
+    Create a NextCord Embed object from a JSON file
+    """
     # Load the embed data from the JSON file
     with open(json_path, "r") as file:
         embed_data = json.load(file)
@@ -29,3 +32,10 @@ def validate_phone_number(phone_number: str) -> bool:
     """
     number = phonenumbers.parse(phone_number, "CA")
     return phonenumbers.is_valid_number_for_region(number, "CA")
+
+def sanitize_phone_number(phone_number: str) -> str:
+    """
+    Method which sanitizes a phone number using the phonenumbers library
+    """
+    number = phonenumbers.parse(phone_number, "CA")
+    return phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)

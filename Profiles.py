@@ -50,7 +50,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         profile = self.db.get_user_profile(user_id)
         embed = nextcord.Embed(title="Your TTBTrackr Profile", description="Here is your profile information", color=nextcord.Color.blue())
         
-        text_mappings = {"instagram_username": "Instagram Username", "phone_number": "Phone Number"}
+        text_mappings = {"instagram_username": "Instagram Username", "phone_number": "Phone Number", "call": "Calling:"}
         
         # Add the user's discord profile picture
         embed.set_thumbnail(url=interaction.user.avatar.url)

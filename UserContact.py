@@ -23,8 +23,8 @@ class UserContact:
         self.twilio = twilio.rest.Client(account_sid, auth_token)
 
         self.contact_methods = {
-            "instagram": self._send_insta_message,
-            "phone": self._send_sms,
+            "instagram_username": self._send_insta_message,
+            "phone_number": self._send_sms,
             "call": self._make_phonecall
         }
 

@@ -11,13 +11,15 @@ from CommonUtils import *
 from UofT import UofT
 from Profiles import ProfilesCog
 
+ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all())
+
+
 # ------------ GLOBAL OBJECTS AND VARIABLES ------------
 contact = UserContact()
 if os.getenv("COMPUTERNAME").upper() == "IBRAPC":
     database = Mongo(os.getenv('PYMONGO'), "TTBTrackrDev")
 else:
     database = Mongo(os.getenv('PYMONGO'), "TTBTrackr")
-ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all())
 ttb.add_cog(UofT(ttb, database, contact))
 ttb.add_cog(ProfilesCog(ttb, database))
 
@@ -29,10 +31,24 @@ async def on_ready():
     
 # ------------ HELP-RELATED COMMANDS ------------
 @ttb.slash_command(name="help", description="Get help with TTBTrackr")
-async def help(interaction: nextcord.Interaction, module: str = SlashOption(name="module", description="The module you want help with", required=True, choices=["UofT"])):
-    embed = build_embed_from_json(f"Embeds/{module}_help.json")
-    await interaction.response.send_message(embed=embed)
+async def help(interaction: nextcord.Interaction):
+    """
+    The main header command for help
+    This command should not be invoked since it's a header
+    """
+    pass
 
+@help.subcommand(name="profile", description="Get help with profiles")
+async def help_profile(interaction: nextcord.Interaction):
+    """
+    Help with profiles
+    """
+    await interaction.response.send_message(embed=build_embed_from_json("Embeds/profile_help.json"))
+
+@help.subcommand(name="uoft", description="Get help with the UofT Module")
+async def help_uoft(interaction: nextcord.Interaction):
+    await interaction.response.send_message(embed=build_embed_from_json("Embeds/UofT_help.json"))
+    
 computer_name = os.getenv('COMPUTERNAME')
 if computer_name.upper() == "IBRAPC":
     ttb.run(os.getenv('DEVTOKEN'))

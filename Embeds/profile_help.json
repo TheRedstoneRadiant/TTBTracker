@@ -1,0 +1,37 @@
+{
+  "title": ":information_source: Profiles :person_raising_hand:",
+  "description": "Profiles allow TTBTrackr to get ahold of you. To setup your profile, use /profile edit",
+  "color": 3447003,
+  "fields": [
+    {
+      "name": "Basic Features",
+      "value": "By default, TTBTrackr uses Discord Direct Messages to notify you of vacnacies in courses. However with the expansion of profiles, TTBTrackr's means of communication increases exponentially",
+      "inline": false
+    },
+    {
+      "name": "Instagram Integration",
+      "value": "If setup, TTBTrackr will send you a DM on Instagram when a vacancy is found. This is useful if you don't have access to Discord at all times, but still want to be notified of vacancies. To setup Instagram integration, use `/profile edit` and include your Instagram username in the Slash Command options",
+      "inline": false
+    },
+    {
+      "name": "SMS Integration",
+      "value": "New to TTBTrackr is the ability to notify you via SMS when a vacancy is found. **Please note this feature is limited to Canadian phone numbers only**. To setup SMS integration, use `/profile edit` and include your phone number in the Slash Command options. **Please note that by using this feature, you agree to allow TTBTrackr to store your phone number in its database, and to send you SMS messages when a vacancy is found**",
+      "inline": false
+    },
+    {
+      "name": "Phone Call Notifications",
+      "value": "Coming soon to TTBTrackr is the ability to deploy phone-call notifications. This feature is currently in development and will be released in the near future. Stay tuned!",
+      "inline": false
+    },
+    {
+      "name": "Setting up contact preferences",
+      "value": "If you would like to disable certain contact methods, you can do so by using `/profile contact`",
+      "inline": false
+    },
+    {
+      "name": "Deleting your Profile",
+      "value": "To delete your profile, use `/profile delete`. This will remove all of your information from TTBTrackr's database and remove you from all courses you are currently tracking. **Please note that this action is irreversible. If you would like to recover your tracked courses, you will have to add them back manually**",
+      "inline": false
+    }
+  ]
+}

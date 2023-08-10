@@ -210,8 +210,9 @@ class UofT(commands.Cog):
             embed.add_field(name=f"{activity['coursecode']} {activity['activity']} {activity['semester']}", value=self.ttbapi.get_course(activity['coursecode'], activity['semester']).name, inline=False)
         
         await interaction.followup.send(embed=embed)
+    
+    
 
-        
 class UofTUtils():
     """
     Class containing all utilities relevant to UofT courses

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from discord import SlashOption
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 import dotenv
 dotenv.load_dotenv("tokens.env")
 import os
@@ -10,6 +10,7 @@ from UserContact import UserContact
 from CommonUtils import *
 from UofT import UofT
 from Profiles import ProfilesCog
+import random
 
 ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all())
 
@@ -48,6 +49,17 @@ async def help_profile(interaction: nextcord.Interaction):
 @help.subcommand(name="uoft", description="Get help with the UofT Module")
 async def help_uoft(interaction: nextcord.Interaction):
     await interaction.response.send_message(embed=build_embed_from_json("Embeds/UofT_help.json"))
+
+@tasks.loop(hours=1)
+async def update_status():
+    await ttb.wait_until_ready()
+    type_mapping = {"watching": nextcord.ActivityType.watching, "playing": nextcord.ActivityType.playing, "listening": nextcord.ActivityType.listening, "competing": nextcord.ActivityType.competing}
+    statusses = json.load(open("common_strings.json", "r"))["presence"]
+    rand_status = random.choice(statusses)
+    text = rand_status['text']
+    type = rand_status['type']
+    await ttb.change_presence(activity=nextcord.Activity(type=type_mapping[type], name=text))
+update_status.start()
     
 computer_name = os.getenv('COMPUTERNAME')
 if computer_name.upper() == "IBRAPC":

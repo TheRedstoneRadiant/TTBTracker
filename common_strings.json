@@ -1,0 +1,52 @@
+{
+    "presence": [
+        {
+            "text": "Academic Offense Simulator: MAT102 Edition",
+            "type": "playing"
+        },
+        {
+            "text": "First years get lost in DV",
+            "type": "watching"
+        },
+        {
+            "text": "To whining CS majors",
+            "type": "listening"
+        },
+        {
+            "text": "Liying's Tutorial Vides on YT",
+            "type": "watching"
+        },
+        {
+            "text": "CSC148: The Midterm Strikes Back",
+            "type": "watching"
+        },
+        {
+            "text": "CSC148: The Final Byte",
+            "type": "watching"
+        },
+        {
+            "text": "Hide and Seek with my GPA",
+            "type": "playing"
+        },
+        {
+            "text": "Office Hours: Where dreams go to die",
+            "type": "watching"
+        },
+        {
+            "text": "Praying for a curve",
+            "type": "playing"
+        },
+        {
+            "text": "Anarchy on the Piazza",
+            "type": "watching"
+        },
+        {
+            "text": "UofT Courses",
+            "type": "watching"
+        },
+        {
+            "text": "CS POSt: Battle Royale",
+            "type": "competing"
+        }
+    ]
+}

@@ -2,6 +2,7 @@ import twilio.rest
 import instagrapi
 import dotenv
 import os
+
 dotenv.load_dotenv("tokens.env")
 
 
@@ -35,6 +36,16 @@ class UserContact:
         for key, value in user_profile.items():
             self.contact_methods[key](value, message)
 
+    def confirm_user_number(self, number: str, confirmation_code: int):
+        """
+        Sends a confirmation code to a user's phone number
+        """
+        message = self.twilio.messages.create(
+            from_='+18506600835',
+            body=f"Your confirmation code is {confirmation_code}. Use /profile confirm with this code to confirm your phone number and activate SMS or phone call notifications",
+            to=number
+        )
+
     def _send_insta_message(self, username: str, message: str) -> None:
         """
         Sends a message to a user's instagram account
@@ -61,3 +72,5 @@ class UserContact:
             to=number,
             from_='+18506600835'
         )
+    
+    

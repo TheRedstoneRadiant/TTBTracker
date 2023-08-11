@@ -60,12 +60,11 @@ class Mongo:
         Precondition: user_id exists in the database.
         :param user_id: User's Discord ID.
         :param new_profile: Dictionary containing updated profile information.
+        This method should use dot notation to update the profile.
         """
-        current_profile = self.get_user_profile(user_id)
-        for key, value in new_profile.items():
-            current_profile[key] = value
-        self.profiles_collection.update_one(
-            {"_id": user_id}, {"$set": {"profile": current_profile}})
+        update_query = {"$set": {"profile." + key: value for key, value in new_profile.items()}}
+        self.profiles_collection.update_one({"_id": user_id}, update_query)
+
 
     def add_tracked_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> None:
         """

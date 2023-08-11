@@ -22,7 +22,7 @@ if os.getenv("COMPUTERNAME").upper() == "IBRAPC":
 else:
     database = Mongo(os.getenv('PYMONGO'), "TTBTrackr")
 ttb.add_cog(UofT(ttb, database, contact))
-ttb.add_cog(ProfilesCog(ttb, database))
+ttb.add_cog(ProfilesCog(ttb, database, contact))
 
 # ------------ BOT EVENTS ------------
 @ttb.event

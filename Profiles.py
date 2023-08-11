@@ -58,7 +58,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         # Add the user's discord profile picture
         embed.set_thumbnail(url=interaction.user.avatar.url)
         for key in profile:
-            function_map[key](embed, profile)            
+            function_map.get(key, lambda arg1, arg2: None)(embed, profile)          
         embed.set_footer(text="You can edit your profile by using /profile edit")
         await interaction.response.send_message(embed=embed, ephemeral=True)
     
@@ -70,6 +70,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         embed.add_field(name="Phone Number", value=profile_data["phone_number"]["number"], inline=False)
         embed.add_field(name="SMS Notifications:", value="On" if profile_data["phone_number"]["SMS"] else "Off", inline=False)
         embed.add_field(name="Phonecall Notifications:", value="On" if profile_data["phone_number"]["call"] else "Off", inline=False)
+        embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No", inline=False)
     
     @profile.subcommand(name="notifications", description="Toggle your preffered notification methods")
     async def change_notifications(self, interaction: nextcord.Interaction, instagram: Optional[str] = SlashOption(name="instagram", description="Toggle Instagram notifications", choices=["On", "Off"]), phone_number: Optional[str] = SlashOption(name="sms", description="Toggle phone notifications", choices=["On", "Off"]), phone_call: Optional[str] = SlashOption(name="call", description="Toggle phone call notifications", choices=["On", "Off"])):
@@ -78,7 +79,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             await interaction.response.send_message("You don't have a profile edit", ephemeral=True)
             return
         if instagram:
-            self.db.update_user_profile(user_id, {"instagram": {"enabled": instagram == "On"}})
+            self.db.update_user_notifications(user_id, instagram == "On", "instagram", "enabled")
         await interaction.response.send_message("Your notification settings have been updated!", ephemeral=True)
         
     @profile.subcommand(name="delete", description="Delete your profile")

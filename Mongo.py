@@ -63,9 +63,20 @@ class Mongo:
         This method should use dot notation to update the profile.
         """
         update_query = {"$set": {"profile." + key: value for key, value in new_profile.items()}}
-        self.profiles_collection.update_one({"_id": user_id}, update_query)
+        self.profiles_collection.update_one({"_id": user_id}, update_query, upsert=True)
 
+    def update_user_notifications(self, user_id: int, new_value: bool, category: str, subcategory: str) -> None:
+        """
+        Updates a users notification preference 
+        category is either phone or instagram
+        subcategory is one of "SMS", "call", or "enabled"
+        Precondition: user_id exists in the database.
+        """
+        # Update profile.category.subcategory to new_value
+        self.profiles_collection.update_one({"_id": user_id}, {"$set": {f"profile.{category}.{subcategory}": new_value}})
 
+        
+        
     def add_tracked_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> None:
         """
         Add a tracked activity to a user's profile.

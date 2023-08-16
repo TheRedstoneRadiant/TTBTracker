@@ -3,6 +3,11 @@
     "description": "Are you sure you want to delete your profile? **This will untrack all of your courses and delete all traces of your profile from our database.** You **will not recieve notifications** for any tracked courses. **This action is irreversible.**",
     "color": 16711680,
     "fields": [
+      {
+        "name": "*Note*",
+        "value": "*If you purchased Call Notifications, you will lose this functionality even if you recreate your profile. You will need to contact <@516413751155621899> to get this functionality back.*",
+        "inline": false
+      }
     ]
   }
   

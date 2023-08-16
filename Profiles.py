@@ -5,9 +5,11 @@ from nextcord import SlashOption
 from nextcord.ext import commands
 from Mongo import Mongo
 from CommonUtils import validate_phone_number, build_embed_from_json, sanitize_phone_number
-from Buttons import ConfirmDialogue
+from Views import ConfirmDialogue
 from random import randint
 from UserContact import UserContact
+from Views import NotificationsView
+
 class ProfilesCog(commands.Cog, name="Profiles"):
     def __init__(self, bot: commands.Bot, database: Mongo, contact: UserContact) -> None:
         super().__init__()
@@ -33,7 +35,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             if not validate_phone_number(cell_number):
                 await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
                 return
-            profile["phone_number"] = {"number": sanitize_phone_number(cell_number), "SMS": True, "call": False, "confirmed": False}
+            profile["phone_number"] = {"number": sanitize_phone_number(cell_number), "SMS": True, "call": False, "confirmed": False, "call_notifications_activated": False}
             
             
         if not self.db.is_user_in_db(user_id):
@@ -54,33 +56,30 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         embed = nextcord.Embed(title="Your TTBTrackr Profile", description="Here is your profile information", color=nextcord.Color.blue())
         
         function_map = {"instagram": self._add_ig_to_profile, "phone_number": self._add_phone_to_profile}
-        
+        enabled_features = []
         # Add the user's discord profile picture
         embed.set_thumbnail(url=interaction.user.avatar.url)
         for key in profile:
-            function_map.get(key, lambda arg1, arg2: None)(embed, profile)          
+            enabled_features.extend(function_map.get(key, lambda arg1, arg2: None)(embed, profile))
         embed.set_footer(text="You can edit your profile by using /profile edit")
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        view = NotificationsView(user_id, embed, self.db, enabled_features)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
     
     def _add_ig_to_profile(self, embed: nextcord.embeds.Embed, profile_data: dict):
         embed.add_field(name="Instagram Username", value=f"[{profile_data['instagram']['username']}](https://instagram.com/{profile_data['instagram']['username']})", inline=False)
         embed.add_field(name="Instagram Notifications:", value="On" if profile_data["instagram"]["enabled"] else "Off", inline=False)
+        return [("Toggle Instagram Notifications", "📸", 1, "instagram", "enabled")]
     
     def _add_phone_to_profile(self, embed: nextcord.embeds.Embed, profile_data: dict):
-        embed.add_field(name="Phone Number", value=profile_data["phone_number"]["number"], inline=False)
+        embed.add_field(name="Phone Number", value=f'||{profile_data["phone_number"]["number"]}||', inline=False)
         embed.add_field(name="SMS Notifications:", value="On" if profile_data["phone_number"]["SMS"] else "Off", inline=False)
-        embed.add_field(name="Phonecall Notifications:", value="On" if profile_data["phone_number"]["call"] else "Off", inline=False)
-        embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No", inline=False)
-    
-    @profile.subcommand(name="notifications", description="Toggle your preffered notification methods")
-    async def change_notifications(self, interaction: nextcord.Interaction, instagram: Optional[str] = SlashOption(name="instagram", description="Toggle Instagram notifications", choices=["On", "Off"]), phone_number: Optional[str] = SlashOption(name="sms", description="Toggle phone notifications", choices=["On", "Off"]), phone_call: Optional[str] = SlashOption(name="call", description="Toggle phone call notifications", choices=["On", "Off"])):
-        user_id = interaction.user.id
-        if not self.db.is_user_in_db(user_id):
-            await interaction.response.send_message("You don't have a profile edit", ephemeral=True)
-            return
-        if instagram:
-            self.db.update_user_notifications(user_id, instagram == "On", "instagram", "enabled")
-        await interaction.response.send_message("Your notification settings have been updated!", ephemeral=True)
+        to_return = [("Toggle SMS Notifications", "💬", 3, "phone_number", "SMS")]
+        # Check to see if profile['phone_number']['call_notifications_active'] is true
+        if profile_data["phone_number"]["call_notifications_activated"]:
+            embed.add_field(name="Phonecall Notifications:", value="On" if profile_data["phone_number"]["call"] else "Off", inline=False)
+            to_return.append(("Toggle Phonecall Notifications", "📞", 4, "phone_number", "call"))
+        embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No (You must confirm your number for phone-related notifications to activate)", inline=False)
+        return to_return
         
     @profile.subcommand(name="delete", description="Delete your profile")
     async def delete_profile(self, interaction: nextcord.Interaction) -> None:
@@ -90,7 +89,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             return
         # For obvious reasons, we need to ask the user if they're sure
         confirm = ConfirmDialogue()
-        message = await interaction.response.send_message(embed=build_embed_from_json("Embeds/delete_profile_warning.json"), ephemeral=True, view=confirm)
+        await interaction.response.send_message(embed=build_embed_from_json("Embeds/delete_profile_warning.json"), ephemeral=True, view=confirm)
         await confirm.wait()
         if confirm.value:
             self.db.remove_user(interaction.user.id)

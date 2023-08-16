@@ -18,7 +18,7 @@ class UserContact:
 
     def __init__(self) -> None:
         self.instagram = instagrapi.Client()
-        self.instagram.login(os.getenv("INSTAUSER"), os.getenv("INSTAPASS"))
+        # self.instagram.login(os.getenv("INSTAUSER"), os.getenv("INSTAPASS"))
         account_sid = 'AC2b1a7015a561484c6b94c1550f79c011'
         auth_token = os.getenv("TWILIOAUTH")
         self.twilio = twilio.rest.Client(account_sid, auth_token)
@@ -57,6 +57,7 @@ class UserContact:
         Sends a message to a user's instagram account
         """
         if username['enabled']:
+            return
             send_to = self.instagram.user_id_from_username(username=username['username'])
             self.instagram.direct_send(text=message, user_ids=[send_to])
         

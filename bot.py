@@ -16,7 +16,7 @@ ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all())
 
 # ------------ GLOBAL OBJECTS AND VARIABLES ------------
 contact = UserContact()
-if os.getenv("COMPUTERNAME").upper() == "IBRAPC":
+if os.getenv("COMPUTERNAME"):
     database = Mongo(os.getenv('PYMONGO'), "TTBTrackrDev")
 else:
     database = Mongo(os.getenv('PYMONGO'), "TTBTrackr")
@@ -61,7 +61,7 @@ async def update_status():
 update_status.start()
     
 computer_name = os.getenv('COMPUTERNAME')
-if computer_name.upper() == "IBRAPC":
+if computer_name:
     ttb.run(os.getenv('DEVTOKEN'))
 else:
     ttb.run(os.getenv('DISCORD'))

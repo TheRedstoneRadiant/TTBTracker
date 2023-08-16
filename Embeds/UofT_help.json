@@ -1,28 +1,27 @@
 {
-    "title": ":information_source: TTBTrackr UofT Module V2.0",
-    "description": "UofT tracking support for TTBTrackr. The Original TTBTrackr Module :D",
-    "color": 3447003,
-    "fields": [
-      {
-        "name": "Tracking Existing Course Activities",
-        "value": "To track vacancies in an existing course activity, use `/uoft track existing`. Make sure you include the campus code in your course code (Ex: CSC148**H5** instead of just CSC148). When a vacancy is found, TTBTrackr will use your profile to send you a DM",
-        "inline": false
-      },
-      {
-        "name": "Tracking new course sections",
-        "value": "To get notified when new sections of a course are added, use `/uoft track new`. Make sure you include the campus code in your course code (Ex: CSC148**H5** instead of just CSC148). When a new section is found, TTBTrackr will use your profile to send you a DM",
-        "inline": false
-      },
-      {
-        "name": "Removing Courses",
-        "value": "To remove a course from being tracked, use /uoft untrack. You will need to provide the course code (With H/Y and campus codes), semester, and activity code you want to remove. For example, if you want to remove CSC148H5 LEC0101 in the Fall, you would use /untrack CSC148H5 LEC0101 F. You can view all the courses you're tracking by using /uoft list",
-        "inline": false
-      },
-      {
-        "name": "Viewing tracked courses",
-        "value": "To view all the courses you're tracking, use /uoft list. This will send you a list of all the courses you're tracking",
-        "inline": false
-      }
-    ]
-  }
-  
+  "title": "📚 TTBTrackr UofT Module V2.0",
+  "description": "Elevate your UofT tracking experience with TTBTrackr's UofT module. The Original TTBTrackr Module 😀",
+  "color": 3447003,
+  "fields": [
+    {
+      "name": "Track Existing Course Activities",
+      "value": "Effortlessly monitor vacancies in ongoing course activities using `/uoft track existing`. Remember to include the campus code in your course code (e.g., CSC148**H5** instead of just CSC148). TTBTrackr will utilize your profile to send you direct messages upon vacancy discoveries.",
+      "inline": false
+    },
+    {
+      "name": "Track New Course Sections",
+      "value": "Stay informed about new course sections by employing `/uoft track new`. Ensure to provide the campus code in your course code (e.g., CSC148H5 instead of just CSC148). When new sections emerge, TTBTrackr will notify you via direct messages based on your profile.",
+      "inline": false
+    },
+    {
+      "name": "Remove Tracked Courses",
+      "value": "Untrack courses using `/uoft untrack`. Specify the complete course code (including H/Y and campus codes), semester, and activity code you wish to remove. For instance, to untrack CSC148H5 LEC0101 in the Fall, use /uoft untrack CSC148H5 LEC0101 F. Your tracked courses can be viewed through /uoft list.",
+      "inline": false
+    },
+    {
+      "name": "View Tracked Courses",
+      "value": "To review all your tracked courses, utilize /uoft list. This command will furnish you with a comprehensive list of the courses you are currently tracking.",
+      "inline": false
+    }
+  ]
+}

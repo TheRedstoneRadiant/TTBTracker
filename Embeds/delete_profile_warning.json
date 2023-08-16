@@ -5,7 +5,7 @@
     "fields": [
       {
         "name": "*Note*",
-        "value": "*If you purchased Call Notifications, you will lose this functionality even if you recreate your profile. You will need to contact <@516413751155621899> to get this functionality back.*",
+        "value": "*If you activated Call Notifications, you will lose this functionality even if you recreate your profile. You will need to contact <@516413751155621899> to get this functionality back.*",
         "inline": false
       }
     ]

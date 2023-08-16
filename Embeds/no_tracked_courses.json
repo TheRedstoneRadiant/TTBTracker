@@ -1,6 +1,6 @@
 {
     "title": ":x: Error :x:",
-    "description": "Hmm. It doesn't look like you have any courses tracked. Use /uoft track to add a course to be tracked!",
+    "description": "Hmm, it doesn't look like you have any courses tracked. Use /uoft track to begin!",
     "color": 3447003,
     "fields": []
 }

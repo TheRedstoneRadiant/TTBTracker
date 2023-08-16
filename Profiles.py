@@ -58,7 +58,8 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         function_map = {"instagram": self._add_ig_to_profile, "phone_number": self._add_phone_to_profile}
         enabled_features = []
         # Add the user's discord profile picture
-        embed.set_thumbnail(url=interaction.user.avatar.url)
+        embed.set_thumbnail(url=interaction.user.avatar.url if interaction.user.avatar else interaction.user.default_avatar.url)
+        embed.add_field(name="Discord Username", value=f"{interaction.user.name}#{interaction.user.discriminator}", inline=False)
         for key in profile:
             enabled_features.extend(function_map.get(key, lambda arg1, arg2: None)(embed, profile))
         embed.set_footer(text="You can edit your profile by using /profile edit")
@@ -68,16 +69,17 @@ class ProfilesCog(commands.Cog, name="Profiles"):
     def _add_ig_to_profile(self, embed: nextcord.embeds.Embed, profile_data: dict):
         embed.add_field(name="Instagram Username", value=f"[{profile_data['instagram']['username']}](https://instagram.com/{profile_data['instagram']['username']})", inline=False)
         embed.add_field(name="Instagram Notifications:", value="On" if profile_data["instagram"]["enabled"] else "Off", inline=False)
-        return [("Toggle Instagram Notifications", "📸", 1, "instagram", "enabled")]
+        return [("Toggle Instagram Notifications", "📸", len(embed.fields)-1, "instagram", "enabled")]
     
     def _add_phone_to_profile(self, embed: nextcord.embeds.Embed, profile_data: dict):
         embed.add_field(name="Phone Number", value=f'||{profile_data["phone_number"]["number"]}||', inline=False)
         embed.add_field(name="SMS Notifications:", value="On" if profile_data["phone_number"]["SMS"] else "Off", inline=False)
-        to_return = [("Toggle SMS Notifications", "💬", 3, "phone_number", "SMS")]
+        to_return = [("Toggle SMS Notifications", "💬", len(embed.fields)-1, "phone_number", "SMS")]
         # Check to see if profile['phone_number']['call_notifications_active'] is true
         if profile_data["phone_number"]["call_notifications_activated"]:
             embed.add_field(name="Phonecall Notifications:", value="On" if profile_data["phone_number"]["call"] else "Off", inline=False)
-            to_return.append(("Toggle Phonecall Notifications", "📞", 4, "phone_number", "call"))
+            
+            to_return.append(("Toggle Phonecall Notifications", "📞", len(embed.fields)-1, "phone_number", "call"))
         # embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No (You must confirm your number for phone-related notifications to activate)", inline=False)
         return to_return
         

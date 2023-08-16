@@ -1,0 +1,28 @@
+{
+  "title": ":information_source: About TTBTrackr :information_source:",
+  "description": "TTBTrackr is proudly brought to you by IbraSoft",
+  "color": 3447003,
+  "fields": [
+    {
+      "name": "Version Information",
+      "value": "TTBTrackr v2023.8.2\nLast patched <t:1692158400:R>\n",
+      "inline": false
+    },
+    {
+      "name": "Module Information",
+      "value": "UofT Module V2.0",
+      "inline": true
+    },
+    {
+      "name": "Developer Information",
+      "value": "<@516413751155621899>",
+      "inline": true
+    },
+    {
+      "name": "Source Code",
+      "value": "[Find us on GitHub](https://github.com/IbraTech04/TTBTracker)",
+      "inline": false
+    }
+  ], 
+  "footer": "TTBTrackr proudly uses Twilio and InstagrAPI. Made with ❤️ by IbraSoft in Python"
+}

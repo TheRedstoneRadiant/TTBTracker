@@ -49,6 +49,10 @@ async def help_profile(interaction: nextcord.Interaction):
 async def help_uoft(interaction: nextcord.Interaction):
     await interaction.response.send_message(embed=build_embed_from_json("Embeds/UofT_help.json"))
 
+@help.subcommand(name="about", description="Get information about TTBTrackr")
+async def about(interaction: nextcord.Interaction):
+    await interaction.response.send_message(embed=build_embed_from_json("Embeds/about.json"))
+
 @tasks.loop(minutes=30)
 async def update_status():
     await ttb.wait_until_ready()

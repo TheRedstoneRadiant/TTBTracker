@@ -78,7 +78,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         if profile_data["phone_number"]["call_notifications_activated"]:
             embed.add_field(name="Phonecall Notifications:", value="On" if profile_data["phone_number"]["call"] else "Off", inline=False)
             to_return.append(("Toggle Phonecall Notifications", "📞", 4, "phone_number", "call"))
-        embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No (You must confirm your number for phone-related notifications to activate)", inline=False)
+        # embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No (You must confirm your number for phone-related notifications to activate)", inline=False)
         return to_return
         
     @profile.subcommand(name="delete", description="Delete your profile")

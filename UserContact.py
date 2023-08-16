@@ -18,15 +18,14 @@ class UserContact:
 
     def __init__(self) -> None:
         self.instagram = instagrapi.Client()
-        # self.instagram.login(os.getenv("INSTAUSER"), os.getenv("INSTAPASS"))
+        self.instagram.login(os.getenv("INSTAUSER"), os.getenv("INSTAPASS"))
         account_sid = 'AC2b1a7015a561484c6b94c1550f79c011'
         auth_token = os.getenv("TWILIOAUTH")
         self.twilio = twilio.rest.Client(account_sid, auth_token)
 
         self.contact_methods = {
-            "instagram_username": self._send_insta_message,
-            "phone_number": self._send_sms,
-            "call": self._make_phonecall
+            "phone_number": self._process_phone_number,
+            "instagram": self._send_insta_message
         }
 
     def contact_user(self, user_profile: dict[str, str], message: str) -> None:
@@ -36,6 +35,13 @@ class UserContact:
         for key, value in user_profile.items():
             self.contact_methods[key](value, message)
 
+    def _process_phone_number(self, number: str, message: str) -> None:
+        if number['SMS']:
+            self._send_sms(number['number'], message)
+        
+        if number['call_notifications_activated'] and number['call']:
+            self._make_phonecall(number['number'], message)
+        
     def confirm_user_number(self, number: str, confirmation_code: int):
         """
         Sends a confirmation code to a user's phone number
@@ -50,8 +56,10 @@ class UserContact:
         """
         Sends a message to a user's instagram account
         """
-        send_to = self.instagram.user_id_from_username(username=username)
-        self.instagram.direct_send(text=message, user_ids=[send_to])
+        if username['enabled']:
+            send_to = self.instagram.user_id_from_username(username=username['username'])
+            self.instagram.direct_send(text=message, user_ids=[send_to])
+        
 
     def _send_sms(self, number: str, message: str) -> None:
         """

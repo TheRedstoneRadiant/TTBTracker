@@ -1,5 +1,4 @@
 from __future__ import annotations
-from discord import SlashOption
 import nextcord
 from nextcord.ext import commands, tasks
 import dotenv
@@ -28,7 +27,7 @@ ttb.add_cog(ProfilesCog(ttb, database, contact))
 @ttb.event
 async def on_ready():
     print(f'{ttb.user} has connected to Discord!')
-    await ttb.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name="UofT Courses"))
+    await update_status()
     
 # ------------ HELP-RELATED COMMANDS ------------
 @ttb.slash_command(name="help", description="Get help with TTBTrackr")
@@ -50,7 +49,7 @@ async def help_profile(interaction: nextcord.Interaction):
 async def help_uoft(interaction: nextcord.Interaction):
     await interaction.response.send_message(embed=build_embed_from_json("Embeds/UofT_help.json"))
 
-@tasks.loop(hours=1)
+@tasks.loop(minutes=30)
 async def update_status():
     await ttb.wait_until_ready()
     type_mapping = {"watching": nextcord.ActivityType.watching, "playing": nextcord.ActivityType.playing, "listening": nextcord.ActivityType.listening, "competing": nextcord.ActivityType.competing}

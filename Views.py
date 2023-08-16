@@ -1,15 +1,10 @@
 from __future__ import annotations
-from typing import Optional
 import nextcord
-from nextcord.ext import commands
 from Mongo import Mongo
-
-BUTTON_MAPPING = {"Instagram": "instagram", "SMS": "phone_number", "Call": "phone_number"}
-SUBMENU_MAPPING = {"Instagram": "enabled", "SMS": "SMS", "Call": "call"}
 
 class ConfirmDialogue(nextcord.ui.View):
     def init(self):
-        super().init()
+        super().__init__()
         self.value = None
     @nextcord.ui.button(label="Yes", style=nextcord.ButtonStyle.green)
     async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -39,7 +34,7 @@ class NotificationToggleButton(nextcord.ui.Button):
 
 class NotificationsView(nextcord.ui.View):
     def __init__(self, user_id: int, embed: nextcord.embeds.Embed, db: Mongo, buttons: list[tuple[str, str, str, int]]) -> None:
-        super().__init__(timeout=None)
+        super().__init__()
         self.user_id = user_id
         self.embed = embed
         self.db = db

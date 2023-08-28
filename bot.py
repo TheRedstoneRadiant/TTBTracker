@@ -55,6 +55,11 @@ async def help_uoft(interaction: nextcord.Interaction):
 async def about(interaction: nextcord.Interaction):
     await interaction.response.send_message(embed=build_embed_from_json("Embeds/about.json"))
 
+@help.subcommand(name="contact", description="Get information about TTBTrackr's Contact Methods")
+async def contact(interaction: nextcord.Interaction):
+    vcard_file = nextcord.File("ttbtrackr.vcf")
+    await interaction.response.send_message("Tip: Add TTBTrackr to your contacts by downloading this VCard file!", embed=build_embed_from_json("Embeds/contact_info.json"), file=vcard_file)
+
 @tasks.loop(minutes=30)
 async def update_status():
     await ttb.wait_until_ready()

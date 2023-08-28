@@ -1,0 +1,19 @@
+{
+    "title": ":information_source: TTBTrackr Profile Info :information_source:",
+    "description": "Here are all the profiles TTBTrackr has. Make sure to follow/add them to your contacts!",
+    "color": 3447003,
+    "fields": [
+        {
+            "name": "Instagram",
+            "value": "[@ttbtrackr](https://www.instagram.com/ttbtrackr/)",
+            "inline": false
+        },
+        {
+            "name": "Cellular",
+            "value": "(850)-660-0835",
+            "inline": false
+        }
+    ],
+
+    "footer": "Cellular services are made possible by [Twilio](https://www.twilio.com/)."
+}

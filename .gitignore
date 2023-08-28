@@ -1,3 +1,4 @@
 /tokens.env
 .prettierrc
 database_porting_script.py
+*.vcf

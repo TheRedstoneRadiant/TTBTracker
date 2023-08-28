@@ -33,5 +33,7 @@
       "value": "If needed, delete your profile using `/profile delete`. This action removes your data and tracked courses. Please note that it's irreversible.",
       "inline": false
     }
-  ]
+  ],
+  "footer": "TTBTrackr respects your privacy. Your cell number will **ONLY** be used for course-related notifications."
+
 }

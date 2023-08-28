@@ -55,7 +55,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             
         if not self.db.is_user_in_db(user_id):
             self.db.add_user_to_db(user_id, profile)
-            await interaction.response.send_message("Successfully setup your profile! Make sure to follow [@ttbtrackr](https://www.instagram.com/ttbtrackr/) on Instagram to get notified when we DM!", ephemeral=True)
+            await interaction.response.send_message("Successfully setup your profile! Make sure to follow [@ttbtrackr](https://www.instagram.com/ttbtrackr/) on Instagram and add (850) - 660 - 0835 to get notified when we send a message!", ephemeral=True)
         else:
             self.db.update_user_profile(user_id, profile)
             await interaction.response.send_message("Your profile has been updated!", ephemeral=True)

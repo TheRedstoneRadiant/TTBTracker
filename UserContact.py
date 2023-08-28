@@ -57,7 +57,6 @@ class UserContact:
         Sends a message to a user's instagram account
         """
         if username['enabled']:
-            return
             send_to = self.instagram.user_id_from_username(username=username['username'])
             self.instagram.direct_send(text=message, user_ids=[send_to])
         
@@ -77,7 +76,7 @@ class UserContact:
         Uses Twilio to make a phone call to a user
         """
         call = self.twilio.calls.create(
-            twiml=f'<Response><Say>{message}</Say><Hangup/></Response>',
+            twiml=f'<Response><Say>Hello! This is a message from Ebra Soft T T B Tracker. {message} Thank you for using T T B Tracker. Have a great day!</Say><Hangup/></Response>',
             to=number,
             from_='+18506600835'
         )

@@ -44,8 +44,21 @@ class UofT(commands.Cog):
                 activity_object = course_object.get_activity(activity)
                 if activity_object.is_seats_free():
                     # If an activity has seats free, then we need to notify the users
-                    message = f"Seats are availible for {course['course_code']} {activity} in {course['semester']}"
+                    message = f"Seats are availible for {course['course_code']} - {course_object.get_name()}, {self._format_activity(activity)}, in {self._format_semester(course['semester'])}"
                     await self._contact_users(course["activities"][activity], course["course_code"], course["semester"], activity, message)
+
+    def _format_activity(self, activity: str):
+        activity_map = {"LEC": "Lecture", "TUT": "Tutorial", "PRA": "Practical"}
+        activity = activity.upper()
+        activity = activity_map.get(activity[:3], None) + " " + activity[3:]
+        if not activity:
+            activity = "new " + activity_map.get(activity[3:], None)
+        
+        return activity
+    
+    def _format_semester(self, semester: str):
+        mapping = {"F": "Fall", "S": "Winter", "Y": "Full Year"}
+        return mapping[semester]
 
     async def check_for_new_sections(self, course: dict, activity: str) -> None:
         course_code = course["course_code"]

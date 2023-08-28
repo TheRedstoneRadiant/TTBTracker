@@ -25,7 +25,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         pass
     
     @profile.subcommand(name="edit", description="Setup or edit your profile")
-    async def setup_profile(self, interaction: nextcord.Interaction, instagram_username: Optional[str] = SlashOption(name="instagram_username", description="The Instagram profile you want the bot to alert you on when vacancies are found"), cell_number: Optional[str] = SlashOption(name="cell_number", description="The cell-phone number you want the bot to text when vacancies are found")) -> None:
+    async def setup_profile(self, interaction: nextcord.Interaction, instagram_username: Optional[str] = SlashOption(name="instagram_username", description="The Instagram profile you want the bot to alert you on when vacancies are found"), cell_number: Optional[str] = SlashOption(name="cell_number", description="Your cell number. By providing your number, you consent to having it stored in TTBTrackr's database")) -> None:
         user_id = interaction.user.id
         profile = {}
         if instagram_username:

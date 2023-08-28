@@ -5,22 +5,27 @@
   "fields": [
     {
       "name": "Track Existing Course Activities",
-      "value": "Effortlessly monitor vacancies in ongoing course activities using `/uoft track existing`. Remember to include the campus code in your course code (e.g., CSC148**H5** instead of just CSC148). TTBTrackr will utilize your profile to send you direct messages upon vacancy discoveries.",
+      "value": "Effortlessly monitor vacancies in ongoing course activities using `/uoft track existing`. TTBTrackr will utilize your profile to send you direct messages upon vacancy discoveries.",
       "inline": false
     },
     {
       "name": "Track New Course Sections",
-      "value": "Stay informed about new course sections by employing `/uoft track new`. Ensure to provide the campus code in your course code (e.g., CSC148H5 instead of just CSC148). When new sections emerge, TTBTrackr will notify you via direct messages based on your profile.",
+      "value": "Stay updated on new course sections opening by using `/uoft trak new`. TTBTrackr will utilize your profile to send you direct messages upon new section discoveries.",
       "inline": false
     },
     {
       "name": "Remove Tracked Courses",
-      "value": "Untrack courses using `/uoft untrack`. Specify the complete course code (including H/Y and campus codes), semester, and activity code you wish to remove. For instance, to untrack CSC148H5 LEC0101 in the Fall, use /uoft untrack CSC148H5 LEC0101 F. Your tracked courses can be viewed through /uoft list.",
+      "value": "Untrack courses using `/uoft untrack`. Note that newLec/newTut/newPra cannot be removed yet due to technical limitations. This feature is currently in progress.",
       "inline": false
     },
     {
       "name": "View Tracked Courses",
-      "value": "To review all your tracked courses, utilize /uoft list. This command will furnish you with a comprehensive list of the courses you are currently tracking.",
+      "value": "To review all your tracked courses, utilize `/uoft list`. This command will furnish you with a comprehensive list of the courses you are currently tracking.",
+      "inline": false
+    },
+    {
+      "name": "Important Note Regarding Tracking Courses",
+      "value": "Please note that this bot works across all three UofT campusses. As such, the bot requires the campus code (ex: `H5`) to be specified when tracking courses. For example, to track CSC108 at UTM, you would use `/uoft track existing CSC108H5`.",
       "inline": false
     }
   ]

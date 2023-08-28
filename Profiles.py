@@ -42,7 +42,10 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             self.db.add_user_to_db(user_id, profile)
             await interaction.response.send_message("Successfully setup your profile! Make sure to follow [@ttbtrackr](https://www.instagram.com/ttbtrackr/) on Instagram to get notified when we DM!", ephemeral=True)
         else:
-            # User does not have a profile, create a new one.
+            # get the current profile 
+            if cell_number:
+                curr_profile = self.db.get_user_profile(user_id)
+                profile['phone_number']['call_notifications_activated'] = curr_profile['phone_number']['call_notifications_activated']
             self.db.update_user_profile(user_id, profile)
             await interaction.response.send_message("Your profile has been updated!", ephemeral=True)
         

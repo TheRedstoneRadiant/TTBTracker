@@ -10,6 +10,7 @@ from CommonUtils import *
 from UofT import UofT
 from Profiles import ProfilesCog
 import random
+from AdminCommands import AdminCommands
 
 ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all())
 
@@ -22,6 +23,7 @@ else:
     database = Mongo(os.getenv('PYMONGO'), "TTBTrackr")
 ttb.add_cog(UofT(ttb, database, contact))
 ttb.add_cog(ProfilesCog(ttb, database, contact))
+ttb.add_cog(AdminCommands(ttb, database))
 
 # ------------ BOT EVENTS ------------
 @ttb.event

@@ -27,25 +27,36 @@ class ProfilesCog(commands.Cog, name="Profiles"):
     @profile.subcommand(name="edit", description="Setup or edit your profile")
     async def setup_profile(self, interaction: nextcord.Interaction, instagram_username: Optional[str] = SlashOption(name="instagram_username", description="The Instagram profile you want the bot to alert you on when vacancies are found"), cell_number: Optional[str] = SlashOption(name="cell_number", description="Your cell number. By providing your number, you consent to having it stored in TTBTrackr's database")) -> None:
         user_id = interaction.user.id
-        profile = {}
+        
+        profile = {
+            "instagram": {"username": "", "enabled": False},
+            "phone_number": {"number": "", "SMS": True, "call": False, "confirmed": False, "call_notifications_activated": False}
+        }
+        
+        if self.db.is_user_in_db(user_id):
+            profile = self.db.get_user_profile(user_id)
+        
+        # If the instagram parameter isn't specified, remove it from the profile
+        if not instagram_username:
+            profile.pop("instagram")
+        if not cell_number:
+            profile.pop("phone_number")
+        
         if instagram_username:
-            profile["instagram"] = {"username": instagram_username, "enabled": True}
+            profile["instagram"]["username"] = instagram_username
+            profile["instagram"]["enabled"] = True
         if cell_number:
             # validate the cell number
             if not validate_phone_number(cell_number):
                 await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
                 return
-            profile["phone_number"] = {"number": sanitize_phone_number(cell_number), "SMS": True, "call": False, "confirmed": False, "call_notifications_activated": False}
+            profile["phone_number"]["number"] = sanitize_phone_number(cell_number)
             
             
         if not self.db.is_user_in_db(user_id):
             self.db.add_user_to_db(user_id, profile)
             await interaction.response.send_message("Successfully setup your profile! Make sure to follow [@ttbtrackr](https://www.instagram.com/ttbtrackr/) on Instagram to get notified when we DM!", ephemeral=True)
         else:
-            # get the current profile 
-            if cell_number:
-                curr_profile = self.db.get_user_profile(user_id)
-                profile['phone_number']['call_notifications_activated'] = curr_profile['phone_number']['call_notifications_activated']
             self.db.update_user_profile(user_id, profile)
             await interaction.response.send_message("Your profile has been updated!", ephemeral=True)
         

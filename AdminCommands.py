@@ -68,16 +68,21 @@ class AdminCommands(commands.Cog):
         if not self.db.is_user_in_db(user.id):
             await interaction.response.send_message(f"{user.mention} does not have a profile to edit!", ephemeral=True)
             return
+        profile = self.db.get_user_profile(user.id)
+        if not instagram_username:
+            profile.pop("instagram")
+        if not cell_number:
+            profile.pop("phone_number")
         
-        profile = {}
         if instagram_username:
-            profile["instagram"] = {"username": instagram_username, "enabled": True}
+            profile["instagram"]["username"] = instagram_username
+            profile["instagram"]["enabled"] = True
         if cell_number:
             # validate the cell number
             if not validate_phone_number(cell_number):
                 await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
                 return
-            profile["phone_number"] = {"number": sanitize_phone_number(cell_number), "SMS": True, "call": False, "confirmed": False, "call_notifications_activated": False}
+            profile["phone_number"]["number"] = sanitize_phone_number(cell_number)
         self.db.update_user_profile(user.id, profile)
         await interaction.response.send_message(f"Successfully edited {user.mention}'s profile", ephemeral=True)
     

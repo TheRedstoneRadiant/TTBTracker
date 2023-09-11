@@ -23,6 +23,8 @@ def build_embed_from_json(json_path: str) -> nextcord.Embed:
             value=field_data["value"],
             inline=field_data["inline"]
         )
+    if "footer" in embed_data:
+        embed.set_footer(text=embed_data['footer'])
 
     return embed
 

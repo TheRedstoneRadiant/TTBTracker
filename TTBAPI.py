@@ -1,6 +1,4 @@
-import requests
 from Courses import *
-import asyncio
 import aiohttp
 
 class TTBAPI:

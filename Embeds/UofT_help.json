@@ -10,7 +10,7 @@
     },
     {
       "name": "Track New Course Sections",
-      "value": "Stay updated on new course sections opening by using `/uoft trak new`. TTBTrackr will utilize your profile to send you direct messages upon new section discoveries.",
+      "value": "Stay updated on new course sections opening by using `/uoft track new`. TTBTrackr will utilize your profile to send you direct messages upon new section discoveries.",
       "inline": false
     },
     {

@@ -61,16 +61,17 @@ class Course:
         return list(filter(lambda x: type in x, self.activities.keys()))
 
 class Activity:
-    def __init__(self, name: str, type: str, current_enrollment: int, max_enrollment: int, enrollment_controls: bool) -> None:
+    def __init__(self, name: str, type: str, current_enrollment: int, max_enrollment: int, enrollment_controls: bool, waitlist: int) -> None:
         self.name = name
         self.type = type
         self.current_enrollment = current_enrollment
         self.max_enrollment = max_enrollment
         self.enrollment_controls = enrollment_controls
+        self.waitlist = waitlist
     
     def is_seats_free(self) -> bool:
         """
         Returns whether or not this activity has seats free
         """
-        return self.current_enrollment < self.max_enrollment and not self.enrollment_controls
+        return self.current_enrollment < self.max_enrollment and not self.enrollment_controls and self.waitlist == 0
         

@@ -1,6 +1,6 @@
 from typing import Optional
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, application_checks
 from Mongo import Mongo
 from CommonUtils import validate_phone_number, build_embed_from_json, sanitize_phone_number
 from Views import NotificationsView
@@ -12,19 +12,22 @@ class AdminCommands(commands.Cog):
     def __init__(self, bot, db: Mongo):
         self.bot = bot
         self.db = db
-
-    @commands.is_owner()
+    
+    def check_if_it_is_me(interaction: nextcord.Interaction):
+        return interaction.user.id == 516413751155621899
+    
     @nextcord.slash_command(name="admin", description="Admin commands")
+    # @application_checks.check(check_if_it_is_me)
     async def admin(self, interaction: nextcord.Interaction):
         pass
     
-    @commands.is_owner()
     @admin.subcommand(name="profile", description="Admin profile commands")
+    # @application_checks.check(check_if_it_is_me)
     async def profile(self, interaction: nextcord.Interaction):
         pass
     
-    @commands.is_owner()
     @profile.subcommand(name="view", description="View a user's profile")
+    @application_checks.check(check_if_it_is_me)
     async def view_profile(self, interaction: nextcord.Interaction, user: nextcord.Member):
         user_id = user.id
         
@@ -46,8 +49,8 @@ class AdminCommands(commands.Cog):
         view = NotificationsView(user_id, embed, self.db, enabled_features)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
     
-    @commands.is_owner()
     @profile.subcommand(name="delete", description="Delete a user's profile")
+    @application_checks.check(check_if_it_is_me)
     async def delete_profile(self, interaction: nextcord.Interaction, user: nextcord.Member):
         """
         Delete a user's profile
@@ -58,8 +61,8 @@ class AdminCommands(commands.Cog):
         self.db.remove_user(user.id)
         await interaction.response.send_message(f"Successfully deleted {user.mention}'s profile", ephemeral=True)
     
-    @commands.is_owner()
     @profile.subcommand(name="edit", description="Forcibly edit a user's profile")
+    @application_checks.check(check_if_it_is_me)
     async def edit_profile(self, interaction: nextcord.Interaction, user: nextcord.Member, instagram_username: Optional[str] = nextcord.SlashOption(name="instagram_username", description="The Instagram profile you want the bot to alert you on when vacancies are found"), cell_number: Optional[str] = nextcord.SlashOption(name="cell_number", description="The cell-phone number you want the bot to text when vacancies are found")):
         """
         Forcibly edit a user's profile
@@ -86,8 +89,8 @@ class AdminCommands(commands.Cog):
         self.db.update_user_profile(user.id, profile)
         await interaction.response.send_message(f"Successfully edited {user.mention}'s profile", ephemeral=True)
     
-    @commands.is_owner()
     @admin.subcommand(name="togglecalls", description="Toggls phone-call notifications for a user")
+    @application_checks.check(check_if_it_is_me)
     async def enablephone(self, interaction: nextcord.Interaction, user: nextcord.Member):
         """
         toggles phone-call notifications for a user
@@ -100,13 +103,13 @@ class AdminCommands(commands.Cog):
         self.db.update_user_profile(user.id, profile)
         await interaction.response.send_message(f"Successfully toggled phone-call notifications for {user.mention}. Current state: {profile['phone_number']['call_notifications_activated']}", ephemeral=True)
     
-    @commands.is_owner()
     @admin.subcommand(name="uoft", description="UofT admin commands")
+    @application_checks.check(check_if_it_is_me)
     async def uoft(self, interaction: nextcord.Interaction):
         pass
     
-    @commands.is_owner()
     @uoft.subcommand(name="forceadd", description="Forcibly add an activity for a user to the database")
+    @application_checks.check(check_if_it_is_me)
     async def forceadd(self, interaction: nextcord.Interaction, user: nextcord.Member, course_code: str, semester: str, activity: str):
         """
         Forcibly add an activity for a user to the database
@@ -117,8 +120,8 @@ class AdminCommands(commands.Cog):
         self.db.add_tracked_activity(user.id, course_code, semester, activity)
         await interaction.response.send_message(f"Successfully added {course_code} {semester} {activity} to {user.mention}'s profile", ephemeral=True)
     
-    @commands.is_owner()
     @uoft.subcommand(name="forceremove", description="Forcibly remove an activity for a user from the database")
+    @application_checks.check(check_if_it_is_me)
     async def forceremove(self, interaction: nextcord.Interaction, user: nextcord.Member, course_code: str, semester: str, activity: str):
         """
         Forcibly remove an activity for a user from the database

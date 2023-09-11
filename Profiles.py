@@ -9,6 +9,7 @@ from Views import ConfirmDialogue
 from random import randint
 from UserContact import UserContact
 from Views import NotificationsView
+import random
 
 class ProfilesCog(commands.Cog, name="Profiles"):
     def __init__(self, bot: commands.Bot, database: Mongo, contact: UserContact) -> None:
@@ -33,13 +34,14 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             "phone_number": {"number": "", "SMS": True, "call": False, "confirmed": False, "call_notifications_activated": False}
         }
         
-        if self.db.is_user_in_db(user_id):
+        if self.db.is_user_in_db(user_id) and self.db.get_user_profile(user_id):
             profile = self.db.get_user_profile(user_id)
+            
         
         # If the instagram parameter isn't specified, remove it from the profile
-        if not instagram_username:
+        if not instagram_username and "instagram" in profile:
             profile.pop("instagram")
-        if not cell_number:
+        if not cell_number and "phone_number" in profile:
             profile.pop("phone_number")
         
         if instagram_username:
@@ -51,7 +53,8 @@ class ProfilesCog(commands.Cog, name="Profiles"):
                 await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
                 return
             profile["phone_number"]["number"] = sanitize_phone_number(cell_number)
-            
+            profile['phone_number']['code'] = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+            self.contact.confirm_user_number(profile["phone_number"]["number"], profile['phone_number']['code'])
             
         if not self.db.is_user_in_db(user_id):
             self.db.add_user_to_db(user_id, profile)
@@ -92,9 +95,8 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         # Check to see if profile['phone_number']['call_notifications_active'] is true
         if profile_data["phone_number"]["call_notifications_activated"]:
             embed.add_field(name="Phonecall Notifications:", value="On" if profile_data["phone_number"]["call"] else "Off", inline=False)
-            
             to_return.append(("Toggle Phonecall Notifications", "📞", len(embed.fields)-1, "phone_number", "call"))
-        # embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No (You must confirm your number for phone-related notifications to activate)", inline=False)
+        embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No **(You must confirm your number for phone-related notifications to activate)**", inline=False)
         return to_return
         
     @profile.subcommand(name="delete", description="Delete your profile")
@@ -112,3 +114,41 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             await interaction.followup.send("Your profile has been deleted. We're sad to see you go 😢", ephemeral=True)
         else:
             await interaction.followup.send("Canceled", ephemeral=True)
+
+    @profile.subcommand(name="confirm", description="Verify your phone number to activate phone-related functions")
+    async def verify(self, interaction: nextcord.Interaction, code: str):
+        if not self.db.is_user_in_db(interaction.user.id):
+            await interaction.response.send_message("You don't have a profile setup. Use `/profile edit` to setup your profile!", ephemeral=True)
+            return
+        
+        user_profile = self.db.get_user_profile(interaction.user.id)
+        if user_profile['phone_number']['confirmed']:
+            await interaction.response.send_message("You already confirmed your number", ephemeral=True)
+            return
+        
+        if code == user_profile['phone_number']['code']:
+            await interaction.response.send_message("Phone number successfully confirmed!", ephemeral=True)
+            user_profile['phone_number']['confirmed'] = True
+            self.db.update_user_profile(interaction.user.id, user_profile)
+            return
+        
+        await interaction.response.send_message("Invalid code, please try again", ephemeral=True)
+    
+    @profile.subcommand(name="resend", description="Resend your verification code, if you didn't recieve it")
+    async def resend(self, interaction: nextcord.Interaction):
+        if not self.db.is_user_in_db(interaction.user.id):
+            await interaction.response.send_message("You don't have a profile setup. Use `/profile edit` to setup your profile!", ephemeral=True)
+            return
+        
+        user_profile = self.db.get_user_profile(interaction.user.id)
+        if user_profile['phone_number']['confirmed']:
+            await interaction.response.send_message("You already confirmed your number", ephemeral=True)
+            return
+
+        code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        
+        user_profile['phone_number']['code'] = code
+        self.db.update_user_profile(interaction.user.id, user_profile)
+        
+        self.contact.confirm_user_number(user_profile["phone_number"]["number"], code)
+        await interaction.response.send_message("Verification code resent!", ephemeral=True)

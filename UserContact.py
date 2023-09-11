@@ -36,6 +36,8 @@ class UserContact:
             self.contact_methods[key](value, message)
 
     def _process_phone_number(self, number: str, message: str) -> None:
+        if not number['confirmed']:
+            return
         if number['SMS']:
             self._send_sms(number['number'], message)
         
@@ -48,7 +50,7 @@ class UserContact:
         """
         message = self.twilio.messages.create(
             from_='+18506600835',
-            body=f"Your confirmation code is {confirmation_code}. Use /profile confirm with this code to confirm your phone number and activate SMS or phone call notifications",
+            body=f"Your confirmation code is {confirmation_code}. Use /profile confirm with this code to confirm your phone number and activate SMS or phone call notifications. If you didn't request this message, you can safely ignore it.",
             to=number
         )
 
@@ -79,8 +81,10 @@ class UserContact:
         call = self.twilio.calls.create(
             twiml=f'<Response><Say voice="Polly.Joanna">Hello! This is a message from Ibra Soft T T B Tracker. {message}. Thank you for using T T B Tracker. Have a great day!</Say><Hangup/></Response>',
             to=number,
-            from_='+18506600835'
-        )
+            from_='+18506600835',
+            machine_detection="DetectMessageEnd",
+            async_amd=True
+            )
     
     
     

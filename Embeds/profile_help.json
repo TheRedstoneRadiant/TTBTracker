@@ -1,11 +1,17 @@
 {
-  "title": "🙋‍♂️ Profile Setup 🙋‍♂️",
+  "title": ":man_raising_hand: Profile Setup :man_raising_hand:",
   "description": "Enhance your TTBTrackr experience through personalized profiles. Easily manage your notifications by using `/profile edit`.",
   "color": 3447003,
   "fields": [
     {
       "name": "Streamlined Communication",
       "value": "Experience the power of expanded communication with TTBTrackr. Receive notifications not just through Discord Direct Messages, but also through other channels.",
+      "inline": false
+    },
+    {
+
+      "name": "Phone number confirmation",
+      "value": "Before any phone-based notifications are activiated, you must use `/profile confirm` and supply the command with the code sent to you when you setup your profile. This is to ensure this phone number belongs to you. If you didn't recieve your code, use `/profile resend`",
       "inline": false
     },
     {

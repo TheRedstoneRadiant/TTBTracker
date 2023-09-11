@@ -44,17 +44,17 @@ class TTBAPI:
             'dayPreferences': [],
             'timePreferences': [],
             'divisions': [
-                'APSC',
-                'ARTSC',
-                'FPEH',
-                'MUSIC',
-                'ARCLA',
+                # 'APSC',
+                # 'ARTSC',
+                # 'FPEH',
+                # 'MUSIC',
+                # 'ARCLA',
                 'ERIN',
-                'SCAR',
+                # 'SCAR',
             ],
             'creditWeights': [],
             'page': 1,
-            'pageSize': 20,
+            'pageSize': 1625,
             'direction': 'asc',
         }
 
@@ -68,7 +68,8 @@ class TTBAPI:
         self.json_data['courseCodeAndTitleProps']['courseSectionCode'] = semester
         response = requests.post(
         'https://api.easi.utoronto.ca/ttb/getPageableCourses', headers=self.headers, json=self.json_data)
-        return response.json()
+        x = response.json()
+        return x
 
     def get_course(self, course_code: str, semester: str) -> Course:
         """
@@ -81,7 +82,7 @@ class TTBAPI:
             to_return = Course(course['name'], course['code'], course['sectionCode'])
             activities = course['sections']
             for activity in activities:
-                to_return.add_activity(Activity(activity['name'], activity['type'], activity['currentEnrolment'], activity['maxEnrolment'], activity['openLimitInd'] != 'N'))
+                to_return.add_activity(Activity(activity['name'], activity['type'], activity['currentEnrolment'], activity['maxEnrolment'], activity['openLimitInd'] != 'N', activity.get('currentWaitlist', 0)))
             return to_return
         except IndexError:
             raise CourseNotFoundException("Invalid course code or semester")

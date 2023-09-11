@@ -12,7 +12,7 @@ from Profiles import ProfilesCog
 import random
 from AdminCommands import AdminCommands
 
-ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all())
+ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all(), owner_id=516413751155621899)
 
 
 # ------------ GLOBAL OBJECTS AND VARIABLES ------------
@@ -23,13 +23,14 @@ else:
     database = Mongo(os.getenv('PYMONGO'), "TTBTrackr")
 ttb.add_cog(UofT(ttb, database, contact))
 ttb.add_cog(ProfilesCog(ttb, database, contact))
-ttb.add_cog(AdminCommands(ttb, database))
+# ttb.add_cog(AdminCommands(ttb, database))
 
 # ------------ BOT EVENTS ------------
 @ttb.event
 async def on_ready():
     print(f'{ttb.user} has connected to Discord!')
     await update_status()
+
     
 # ------------ HELP-RELATED COMMANDS ------------
 @ttb.slash_command(name="help", description="Get help with TTBTrackr")

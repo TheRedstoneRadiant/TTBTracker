@@ -154,7 +154,7 @@ class UofT(commands.Cog):
         await interaction.send(embed=embed)
 
     @track.subcommand(name="existing", description="Track an existing course activity")
-    async def activity(self, interaction: nextcord.Interaction, course_code: str = SlashOption(name="course_code", description="The course code of the course you want to track. Example: CSC148H5"), activity: str = SlashOption(name="activity", description="The activity code which you want to track. Example: LEC0101"), session: str = SlashOption(
+    async def activity(self, interaction: nextcord.Interaction, course_code: str = SlashOption(name="course_code", description="The course code of the course you want to track. Make sure to include the campus code (ex: H5)!"), activity: str = SlashOption(name="activity", description="The activity code which you want to track. Example: LEC0101"), session: str = SlashOption(
         name="semester",
         description="The semester in which the course is offered. Example: Fall",
         choices={"Fall": "F", "Winter": "S", "Full Year": "Y"},

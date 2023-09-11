@@ -1,6 +1,4 @@
-import requests
 from Courses import *
-import asyncio
 import aiohttp
 
 class TTBAPI:
@@ -47,13 +45,13 @@ class TTBAPI:
             'dayPreferences': [],
             'timePreferences': [],
             'divisions': [
-                # 'APSC',
-                # 'ARTSC',
-                # 'FPEH',
-                # 'MUSIC',
-                # 'ARCLA',
+                'APSC',
+                'ARTSC',
+                'FPEH',
+                'MUSIC',
+                'ARCLA',
                 'ERIN',
-                # 'SCAR',
+                'SCAR',
             ],
             'creditWeights': [],
             'page': 1,

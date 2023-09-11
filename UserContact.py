@@ -17,7 +17,7 @@ class UserContact:
     """
 
     def __init__(self) -> None:
-        self.instagram = instagrapi.Client()
+        # self.instagram = instagrapi.Client()
         # self.instagram.login(os.getenv("INSTAUSER"), os.getenv("INSTAPASS"))
         account_sid = 'AC2b1a7015a561484c6b94c1550f79c011'
         auth_token = os.getenv("TWILIOAUTH")

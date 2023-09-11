@@ -48,6 +48,10 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             profile["instagram"]["username"] = instagram_username
             profile["instagram"]["enabled"] = True
         if cell_number:
+            failed_attempts = profile['phone_number'].get("failed_attempts", 0) + 1
+            if failed_attempts % 6 == 0:
+                await interaction.response.send_message("Phone related features have been disabled on this account. Please contact support for further instructions", ephemeral=True)
+                return
             # validate the cell number
             if not validate_phone_number(cell_number):
                 await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
@@ -131,8 +135,23 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             user_profile['phone_number']['confirmed'] = True
             self.db.update_user_profile(interaction.user.id, user_profile)
             return
-        
+
+        failed_attempts = user_profile['phone_number'].get("failed_attempts", 0) + 1
+        user_profile['phone_number']['failed_attempts'] = failed_attempts
+        if failed_attempts % 6 == 0:
+            await interaction.response.send_message("Phone-related features have been disabled on this account. Please contact support for further instructions", ephemeral=True)
+            return
+        if failed_attempts % 3 == 0:
+            code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+            user_profile['phone_number']['code'] = code
+            self.db.update_user_profile(interaction.user.id, user_profile)
+            self.contact.confirm_user_number(user_profile["phone_number"]["number"], code)
+            await interaction.response.send_message("Verification failed. A new verification code has been sent.", ephemeral=True)        
+            return
+
         await interaction.response.send_message("Invalid code, please try again", ephemeral=True)
+        self.db.update_user_profile(interaction.user.id, user_profile)
+
     
     @profile.subcommand(name="resend", description="Resend your verification code, if you didn't recieve it")
     async def resend(self, interaction: nextcord.Interaction):
@@ -145,6 +164,13 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             await interaction.response.send_message("You already confirmed your number", ephemeral=True)
             return
 
+        resent_codes = user_profile['phone_number'].get("failed_attempts", 0) + 1
+        user_profile['phone_number']['resent_codes'] = resent_codes
+        if resent_codes % 6 == 0:
+            await interaction.response.send_message("Phone-related features have been disabled on this account. Please contact support for further instructions", ephemeral=True)
+            self.db.update_user_profile(interaction.user.id, user_profile)
+            #TODO: Disable the SMS and Phone functions here
+            return
         code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         
         user_profile['phone_number']['code'] = code

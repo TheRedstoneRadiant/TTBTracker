@@ -34,7 +34,7 @@ class UofT(commands.Cog):
         # Get a list of all the courses in the database
         courses = self.database.get_all_courses()
         for course in courses:
-            course_object = self.ttbapi.get_course(
+            course_object = await self.ttbapi.get_course(
                 course["course_code"], course["semester"])
             for activity in course['activities']:
                 if "New" in activity:
@@ -64,7 +64,7 @@ class UofT(commands.Cog):
         course_code = course["course_code"]
         semester = course["semester"]
         # Get the current course sections
-        course_object = self.ttbapi.get_course(course_code, semester)
+        course_object = await self.ttbapi.get_course(course_code, semester)
         activities = course_object.get_activity_by_type(activity[3:])
         # sort the activities by their section number
         activities.sort()
@@ -125,7 +125,7 @@ class UofT(commands.Cog):
             await interaction.response.send_message("Invalid course code/activity/semester combination. Please try again.", ephemeral=True)
             return
         try:
-            self.ttbapi.validate_course(course_code, session, activity)
+            await self.ttbapi.validate_course(course_code, session, activity)
         except CourseNotFoundException:
             # If the course is not found, it's invalid
             await interaction.response.send_message("Invalid course code or semester. Please try again", ephemeral=True)
@@ -168,7 +168,7 @@ class UofT(commands.Cog):
         # Step Two: Validate whether or not the course exists in the UofT TTB Database. If it does not
         # Warn the user
         try:
-            self.ttbapi.validate_course(course_code, session, activity)
+            await self.ttbapi.validate_course(course_code, session, activity)
         except CourseNotFoundException:
             await interaction.response.send_message("Invalid course code or semester. Please try again", ephemeral=True)
             return
@@ -226,16 +226,16 @@ class UofT(commands.Cog):
             embed = build_embed_from_json("Embeds/no_tracked_courses.json")
             await interaction.response.send_message(embed=embed)
             return
-        await interaction.response.defer()
         activities = self.database.get_user_tracked_activities(
             interaction.user.id)
         embed = nextcord.Embed(title="Tracked Courses",
                                description="Here are all the courses you're tracking", color=nextcord.Color.blue())
         for activity in activities:
-            embed.add_field(name=f"{activity['coursecode']} {activity['activity']} {activity['semester']}", value=self.ttbapi.get_course(
-                activity['coursecode'], activity['semester']).name, inline=False)
+            course_name = await self.ttbapi.get_course(activity['coursecode'], activity['semester'])
+            course_name = course_name.name
+            embed.add_field(name=f"{activity['coursecode']} {activity['activity']} {activity['semester']}", value=course_name, inline=False)
 
-        await interaction.followup.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 class UofTUtils():

@@ -1,5 +1,8 @@
 import requests
 from Courses import *
+import asyncio
+import aiohttp
+
 class TTBAPI:
     """
     Class which abstracts all interactions with the UofT TTB API.
@@ -58,7 +61,7 @@ class TTBAPI:
             'direction': 'asc',
         }
 
-    def _make_request(self, course_code: str, semester: str) -> dict:
+    async def _make_request(self, course_code: str, semester: str) -> dict:
         """
         Makes a request to the TTB API to get info on a course.
         Precondition: Coursecode is a valid coursecode, and semester is a valid semester
@@ -66,18 +69,25 @@ class TTBAPI:
         """
         self.json_data['courseCodeAndTitleProps']['courseCode'] = course_code
         self.json_data['courseCodeAndTitleProps']['courseSectionCode'] = semester
-        response = requests.post(
-        'https://api.easi.utoronto.ca/ttb/getPageableCourses', headers=self.headers, json=self.json_data)
-        x = response.json()
-        return x
+        # ===== OLD SYNCRENOUS APPROACH =======
+        # response = requests.post(
+        # 'https://api.easi.utoronto.ca/ttb/getPageableCourses', headers=self.headers, json=self.json_data)
+        # x = response.json()
+        # return x
+        async with aiohttp.ClientSession() as session:
+            async with session.post("https://api.easi.utoronto.ca/ttb/getPageableCourses", headers=self.headers, json=self.json_data) as response:
+                # Check for successful status code (e.g., 200 OK)
+                if response.status == 200:
+                    data = await response.json()
+                    return data
 
-    def get_course(self, course_code: str, semester: str) -> Course:
+    async def get_course(self, course_code: str, semester: str) -> Course:
         """
         Returns a Course object from the TTB API
         Raises CourseNotFoundException if the course is deemed to be invalid
         """
         try:
-            response = self._make_request(course_code, semester)
+            response = await self._make_request(course_code, semester)
             course = response['payload']['pageableCourse']['courses'][0]
             to_return = Course(course['name'], course['code'], course['sectionCode'])
             activities = course['sections']
@@ -87,12 +97,12 @@ class TTBAPI:
         except IndexError:
             raise CourseNotFoundException("Invalid course code or semester")
 
-    def validate_course(self, coursecode: str, semester: str, activity: str):
+    async def validate_course(self, coursecode: str, semester: str, activity: str):
         """
         Method which validates a coursecode/semester/activity combo
         """
         try:
-            course = self.get_course(coursecode, semester)
+            course = await self.get_course(coursecode, semester)
             activity = course.get_activity(activity)
         except CourseNotFoundException:
             raise CourseNotFoundException("Invalid course code or semester")

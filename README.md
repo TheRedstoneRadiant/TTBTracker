@@ -6,11 +6,8 @@ Discord Bot which scrapes information from the TTB UofT database and alerts to v
 ## Initial Discoveries 
 The majority of the work for this Discord Bot is derrived from my old Discord Bot [tTimeTable](https://github.com/IbraTech04/tTimeTable-Uni-Edition). Feel free to check out the repo for more information on how I was able to scrape the UofT TimeTable builder. The basic gist of it was using DevTools to find the request which returns the course information, then reverse-engineering the request to find the parameters which are sent to the server.
 
-## The Database 
-Currently the database is fairly ineffient, which leads to several duplicate calls for the same course. This is because right now, the database only stores which courses each user has tracked, not the other way around. In a future update, I plan to add a table which stores which course is being tracked by which user, which will allow for a more efficient request system.
-
 ## Original Features + New Features
-Originally the bot was only designed to send you a direct message (DM) on Discord when a spot opened up in a course. However, I have since added more ways for the bot to contact you, notably Instagram support (through (InstagrAPI)[https://github.com/adw0rd/instagrapi]) and SMS support (through (Twilio)[https://www.twilio.com/]). I intend on adding more contact methods in the future, but as of right now I'm not sure what else makes sense to add
+Originally the bot was only designed to send you a direct message (DM) on Discord when a spot opened up in a course. However, I have since added more ways for the bot to contact you, notably Instagram support \(through (InstagrAPI)[https://github.com/adw0rd/instagrapi]\) and SMS/Phone call support \(through (Twilio)[https://www.twilio.com/]\). 
 
 # How to host it yourself
 ## Requirements

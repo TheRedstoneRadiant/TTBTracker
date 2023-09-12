@@ -85,7 +85,11 @@ class Mongo:
         :param user_id: User's Discord ID.
         :return: Dictionary containing user's profile information.
         """
-        return self.faults_collection.find_one({"_id": user_id}).get("profile", {}) 
+        user_profile = self.faults_collection.find_one({"_id": user_id})
+        if user_profile:
+            return user_profile.get("profile", {})
+        else:
+            return {}    
     
     def update_user_notifications(self, user_id: int, new_value: bool, category: str, subcategory: str) -> None:
         """

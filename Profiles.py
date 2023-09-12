@@ -39,7 +39,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             profile = self.db.get_user_profile(user_id)
         else:
             faults = self.db.get_user_faults(user_id)
-            profile['phone_number'].update(faults['profile'])
+            profile['phone_number'].update(faults)
         
         # If the instagram parameter isn't specified, remove it from the profile
         if not instagram_username and "instagram" in profile:
@@ -170,7 +170,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             return
 
         resent_codes = user_profile['phone_number'].get("failed_attempts", 0) + 1
-        user_profile['phone_number']['resent_codes'] = resent_codes
+        user_profile['phone_number']['failed_attempts'] = resent_codes
         if resent_codes % 6 == 0:
             await interaction.response.send_message("Phone-related features have been disabled on this account. Please contact support for further instructions", ephemeral=True)
             #TODO: Disable the SMS and Phone functions here

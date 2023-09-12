@@ -11,7 +11,7 @@ from UofT import UofT
 from Profiles import ProfilesCog
 import random
 from AdminCommands import AdminCommands
-
+from CommonUtils import get_most_recent_file_modified_time
 ttb = commands.Bot(command_prefix='ttb', intents=nextcord.Intents.all(), owner_id=516413751155621899)
 
 
@@ -24,6 +24,8 @@ else:
 ttb.add_cog(UofT(ttb, database, contact))
 ttb.add_cog(ProfilesCog(ttb, database, contact))
 # ttb.add_cog(AdminCommands(ttb, database))
+
+VERSION = "TTBTrackr v2023.9.1PRERELEASE_BETA\n"
 
 # ------------ BOT EVENTS ------------
 @ttb.event
@@ -54,7 +56,13 @@ async def help_uoft(interaction: nextcord.Interaction):
 
 @help.subcommand(name="about", description="Get information about TTBTrackr")
 async def about(interaction: nextcord.Interaction):
-    await interaction.response.send_message(embed=build_embed_from_json("Embeds/about.json"))
+    # Load the embed data from the JSON file
+    with open("Embeds/about.json", "r", encoding="utf-8") as file:
+        embed_data = json.load(file)
+    embed_data['fields'][0]['value'] = VERSION + f"Last patched <t:{int(get_most_recent_file_modified_time())}:R>"
+    for _, cog in ttb.cogs.items():
+        embed_data['fields'][1]['value'] += cog.version + "\n"
+    await interaction.response.send_message(embed=build_embed_from_json(embed_data))
 
 @help.subcommand(name="contact", description="Get information about TTBTrackr's Contact Methods")
 async def contact(interaction: nextcord.Interaction):

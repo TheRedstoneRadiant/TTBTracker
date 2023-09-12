@@ -48,6 +48,8 @@ class UserContact:
         """
         Sends a confirmation code to a user's phone number
         """
+        #TODO: Remove this line before pushing
+        return
         message = self.twilio.messages.create(
             from_='+18506600835',
             body=f"Your confirmation code is {confirmation_code}. Use /profile confirm with this code to confirm your phone number and activate SMS or phone call notifications. If you didn't request this message, you can safely ignore it.",

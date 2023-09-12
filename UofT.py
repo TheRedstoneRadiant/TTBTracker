@@ -23,6 +23,7 @@ class UofT(commands.Cog):
         self.database = database
         self.contact = contact
         self.refresh.start()
+        self.version = "UofTModule V 2.1\nTTBAPI V2.1"
 
     @tasks.loop(seconds=30)
     async def refresh(self) -> None:
@@ -258,3 +259,6 @@ class UofTUtils():
         match_activity = re.match(pattern_activity, activity)
         # We also need to make sure semester is in [F, S, Y]
         return bool(match_code) and bool(match_activity) and semester in ['F', 'S', 'Y']
+
+    def ver(self):
+        return "UofTModule V" + self.version + "\nTTBAPI V2.1"

@@ -17,6 +17,7 @@ class Mongo:
         self.profiles_collection = self.db['profiles']
         self.courses_collection = self.db['courses']
         self.sections_collection = self.db['sections']
+        self.faults_collection = self.db['faults']
 
     def is_user_in_db(self, user_id: str) -> bool:
         """
@@ -64,7 +65,28 @@ class Mongo:
         """
         update_query = {"$set": {"profile." + key: value for key, value in new_profile.items()}}
         self.profiles_collection.update_one({"_id": user_id}, update_query, upsert=True)
+        
+    def update_user_faults(self, user_id: str, new_profile: Dict[str, Union[str, int]]) -> None:
+        """
+        Update a user's failed attempts at verification to a separate database. This is to 
+        prevent circumventing account limiting
+        Precondition: user_id exists in the database.
+        :param user_id: User's Discord ID.
+        :param new_profile: Dictionary containing updated profile information.
+        This method should use dot notation to update the profile.
+        """
+        update_query = {"$set": {"profile." + key: value for key, value in new_profile.items()}}
+        self.faults_collection.update_one({"_id": user_id}, update_query, upsert=True)
+        
+    def get_user_faults(self, user_id: str) -> Dict[str, Dict[str, str]]:
+        """
+        Get a user's profile.
 
+        :param user_id: User's Discord ID.
+        :return: Dictionary containing user's profile information.
+        """
+        return self.faults_collection.find_one({"_id": user_id}).get("profile", {}) 
+    
     def update_user_notifications(self, user_id: int, new_value: bool, category: str, subcategory: str) -> None:
         """
         Updates a users notification preference 
@@ -75,8 +97,6 @@ class Mongo:
         # Update profile.category.subcategory to new_value
         self.profiles_collection.update_one({"_id": user_id}, {"$set": {f"profile.{category}.{subcategory}": new_value}})
 
-        
-        
     def add_tracked_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> None:
         """
         Add a tracked activity to a user's profile.
@@ -149,7 +169,7 @@ class Mongo:
         :param user_id: User's Discord ID.
         :return: Dictionary containing user's profile information.
         """
-        return self.profiles_collection.find_one({"_id": user_id}).get("profile", None)
+        return self.profiles_collection.find_one({"_id": user_id}).get("profile", {}) 
 
     def _add_user_to_activity(self, user_id: str, course_code: str, semester: str, activity: str) -> bool:
         """
@@ -229,7 +249,6 @@ class Mongo:
             return bool(course_activity_data.get(activity_type, []))
         else:
             return False
-
 
 if __name__ == "__main__":
     # Crude tests for each of the methods

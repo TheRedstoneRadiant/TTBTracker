@@ -120,7 +120,6 @@ class UofT(commands.Cog):
     @track.subcommand(name="new", description="Track new activity sections being opened")
     async def new_section(self, interaction: nextcord.Interaction, course_code: str = SlashOption(name="course_code", description="The course code of the course you want to track. Example: CSC148H5"), session: str = SlashOption(description="The semester in which the course is offered. Example: Fall", choices={"Fall": "F", "Winter": "S", "Full Year": "Y"}), activity: str = SlashOption(description="The new activity section you want to track", choices=["LEC", "TUT", "PRA"])):
         course_code, activity = course_code.upper(), activity.upper()
-        footer = "Thank you for using TTBTrackr"
         # Step One: Validate the course code/activity/semester
         if not self.utils.validate_course(course_code, f"{activity}0000", session):
             await interaction.response.send_message("Invalid course code/activity/semester combination. Please try again.", ephemeral=True)
@@ -139,13 +138,24 @@ class UofT(commands.Cog):
         if not self.database.is_user_in_db(interaction.user.id):
             # Create a profile for the user, then set the embed footer as "Remember to setup your profile"
             self.database.add_user_to_db(interaction.user.id, {})
-            footer = "Remember to setup your profile using /profile!"
+            self.database.add_blank_dlc(interaction.user.id)
+            footer = "Remember to setup your profile using /profile! Remaining free tracked activities: " + str(self.database.get_user_dlc(interaction.user.id)['max_tracked_activities'] - len(self.database.get_user_tracked_activities(interaction.user.id)) - 1)
+        else:
+            footer = "Remaining free tracked activities: " + str(self.database.get_user_dlc(interaction.user.id)['max_tracked_activities'] - len(self.database.get_user_tracked_activities(interaction.user.id)) - 1)
 
         # If we're here, then the course is valid, and we can add it to the database
         # But first, we need to check if the course is already in the database
         if self.database.is_user_tracking_activity(interaction.user.id, course_code, session, activity):
             await interaction.send("You are already tracking this course/activity combination", ephemeral=True)
             return
+    
+            # If the user's current tracked activities is greater than the allotted amount, don't allow them to add more
+        user_activites = self.database.get_user_tracked_activities(interaction.user.id)
+        user_dlc = self.database.get_user_dlc(interaction.user.id)
+        if len(user_activites) == user_dlc['max_tracked_activities']:
+            await interaction.response.send_message("You have reached the maximum amount of tracked activities. Please remove some activities before adding more, or consider upgrading your account to add more activities", ephemeral=True)
+            return
+        
         self.database.add_tracked_activity(
             interaction.user.id, course_code, session, f"New{activity}")
         embed = nextcord.Embed(
@@ -161,7 +171,6 @@ class UofT(commands.Cog):
         choices={"Fall": "F", "Winter": "S", "Full Year": "Y"},
     ),):
         course_code, activity = course_code.upper(), activity.upper()
-        footer = "Thank you for using TTBTrackr"
         # Step One: Validate the course code/activity/semester
         if not self.utils.validate_course(course_code, activity, session):
             await interaction.response.send_message("Invalid course code/activity/semester combination. Please try again.", ephemeral=True)
@@ -180,12 +189,21 @@ class UofT(commands.Cog):
         if not self.database.is_user_in_db(interaction.user.id):
             # Create a profile for the user, then set the embed footer as "Remember to setup your profile"
             self.database.add_user_to_db(interaction.user.id, {})
-            footer = "Remember to setup your profile using /profile!"
+            self.database.add_blank_dlc(interaction.user.id)
+            footer = "Remember to setup your profile using /profile! Remaining free tracked activities: " + str(self.database.get_user_dlc(interaction.user.id)['max_tracked_activities'] - len(self.database.get_user_tracked_activities(interaction.user.id)) - 1)
+        else:
+            footer = "Remaining free tracked activities: " + str(self.database.get_user_dlc(interaction.user.id)['max_tracked_activities'] - len(self.database.get_user_tracked_activities(interaction.user.id)) - 1)
 
         # If we're here, then the course is valid, and we can add it to the database
         # But first, we need to check if the course is already in the database
         if self.database.is_user_tracking_activity(interaction.user.id, course_code, session, activity):
             await interaction.send("You are already tracking this course/activity combination", ephemeral=True)
+            return
+        # If the user's current tracked activities is greater than the allotted amount, don't allow them to add more
+        user_activites = self.database.get_user_tracked_activities(interaction.user.id)
+        user_dlc = self.database.get_user_dlc(interaction.user.id)
+        if len(user_activites) == user_dlc['max_tracked_activities']:
+            await interaction.response.send_message("You have reached the maximum amount of tracked activities. Please remove some activities before adding more, or consider upgrading your account to add more activities", ephemeral=True)
             return
 
         self.database.add_tracked_activity(

@@ -17,7 +17,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         self.bot = bot
         self.db = database
         self.contact = contact
-        self.version = "ProfileCore V3.2\n" + self.db.version + "\n" + self.contact.version 
+        self.version = "ProfileCore V3.2\nDLCore V1.0\n" + self.db.version + "\n" + self.contact.version 
         
     @nextcord.slash_command(name="profile")
     async def profile(self, iteraction: nextcord.Interaction) -> None:
@@ -36,12 +36,6 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         
         if self.db.is_user_in_db(user_id) and self.db.get_user_profile(user_id):
             profile = self.db.get_user_profile(user_id)
-            user_dlc = self.db.get_user_dlc(user_id)
-            # If the user's current tracked activities is greater than the allotted amount, don't allow them to add more
-            user_activites = self.db.get_user_tracked_activities(user_id)
-            if len(user_activites) >= user_dlc['max_tracked_activities']:
-                await interaction.response.send_message("You have reached the maximum amount of tracked activities. Please remove some activities before adding more, or consider upgrading your account to add more activities", ephemeral=True)
-                return
         else:
             faults = self.db.get_user_faults(user_id)
             profile['phone_number'].update(faults)

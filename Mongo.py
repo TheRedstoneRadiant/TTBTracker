@@ -18,6 +18,8 @@ class Mongo:
         self.courses_collection = self.db['courses']
         self.sections_collection = self.db['sections']
         self.faults_collection = self.db['faults']
+        self.dlc_collection = self.db['dlc']
+        self.version = "MongoCore V2.1"
 
     def is_user_in_db(self, user_id: str) -> bool:
         """
@@ -156,6 +158,8 @@ class Mongo:
         :return: List of dictionaries representing tracked activities.
         """
         user_doc = self.profiles_collection.find_one({"_id": user_id})
+        if user_doc is None:
+            return []
         return user_doc.get("tracked", [])
 
     def get_all_users(self) -> List[str]:
@@ -254,9 +258,38 @@ class Mongo:
         else:
             return False
 
+    def add_blank_dlc(self, user_id) -> None:
+        """
+        Creates a new DLC profile for hte user in teh DLC collection
+        and adds the default allowed parameters
+        """
+        dlc = {"_id": user_id, "SMS_enabled": False, "call_enabled": False, "max_tracked_activities": 3}
+        self.dlc_collection.insert_one(dlc)
+    
+    def get_user_dlc(self, user_id: str) -> Dict[str, str]:
+        """
+        Get a user's DLC profile.
+        Precondition: user_id exists in the database.
+        :param user_id: User's Discord ID.
+        :return: Dictionary containing user's DLC profile information.
+        """
+        return self.dlc_collection.find_one({"_id": user_id})
+
+    def update_user_dlc(self, user_id: str, new_dlc: Dict[str, Union[str, int]]) -> None:
+        """
+        Update a user's DLC profile.
+        Precondition: user_id exists in the database.
+        :param user_id: User's Discord ID.
+        :param new_dlc: Dictionary containing updated DLC information.
+        This method should use dot notation to update the DLC.
+        """
+        update_query = {"$set": {key: value for key, value in new_dlc.items()}}
+        self.dlc_collection.update_one({"_id": user_id}, update_query, upsert=True)
+
+    
 if __name__ == "__main__":
     # Crude tests for each of the methods
     database_creds = os.getenv("PYMONGO")
     db = Mongo(database_creds, "TTBTrackrDev")
-
-    db.add_tracked_activity("123456789", "CSC148H5", "S", "NewLEC")
+    db.add_blank_dlc("123456789")
+    # db.add_tracked_activity("123456789", "CSC148H5", "S", "NewLEC")

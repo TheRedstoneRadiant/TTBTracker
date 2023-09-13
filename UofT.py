@@ -23,7 +23,7 @@ class UofT(commands.Cog):
         self.database = database
         self.contact = contact
         self.refresh.start()
-        self.version = "UofTModule V 2.1\nTTBAPI V2.1"
+        self.version = "UofTModule V 2.1\n" + self.ttbapi.version
 
     @tasks.loop(seconds=30)
     async def refresh(self) -> None:
@@ -101,7 +101,7 @@ class UofT(commands.Cog):
             discord_user = self.bot.get_user(user)
             await discord_user.send(message)
             self.contact.contact_user(
-                self.database.get_user_profile(user), message)
+                self.database.get_user_profile(user), message, self.database.get_user_dlc(user))
             # Remove the user from the database
             self.database.remove_tracked_activity(
                 user, coursecode, semester, activity)

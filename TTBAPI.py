@@ -58,6 +58,7 @@ class TTBAPI:
             'pageSize': 1625,
             'direction': 'asc',
         }
+        self.version = "TTBAPI V2.1"
 
     async def _make_request(self, course_code: str, semester: str) -> dict:
         """

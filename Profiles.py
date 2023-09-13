@@ -17,7 +17,7 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         self.bot = bot
         self.db = database
         self.contact = contact
-        self.version = "ProfileCore V3.2"
+        self.version = "ProfileCore V3.2\n" + self.db.version + "\n" + self.contact.version 
         
     @nextcord.slash_command(name="profile")
     async def profile(self, iteraction: nextcord.Interaction) -> None:
@@ -27,45 +27,43 @@ class ProfilesCog(commands.Cog, name="Profiles"):
         pass
     
     @profile.subcommand(name="edit", description="Setup or edit your profile")
-    async def setup_profile(self, interaction: nextcord.Interaction, instagram_username: Optional[str] = SlashOption(name="instagram_username", description="The Instagram profile you want the bot to alert you on when vacancies are found"), cell_number: Optional[str] = SlashOption(name="cell_number", description="Your cell number. By providing your number, you consent to having it stored in TTBTrackr's database")) -> None:
+    async def setup_profile(self, interaction: nextcord.Interaction, cell_number: str = SlashOption(name="cell_number", description="Your cell number. By providing your number, you consent to having it stored in TTBTrackr's database", required=True)) -> None:
         user_id = interaction.user.id
         
         profile = {
-            "instagram": {"username": "", "enabled": False},
-            "phone_number": {"number": "", "SMS": True, "call": False, "confirmed": False, "call_notifications_activated": False}
+            "phone_number": {"number": "", "SMS": True, "call": False, "confirmed": False, "code": "", "failed_attempts": 0},
         }
         
         if self.db.is_user_in_db(user_id) and self.db.get_user_profile(user_id):
             profile = self.db.get_user_profile(user_id)
+            user_dlc = self.db.get_user_dlc(user_id)
+            # If the user's current tracked activities is greater than the allotted amount, don't allow them to add more
+            user_activites = self.db.get_user_tracked_activities(user_id)
+            if len(user_activites) >= user_dlc['max_tracked_activities']:
+                await interaction.response.send_message("You have reached the maximum amount of tracked activities. Please remove some activities before adding more, or consider upgrading your account to add more activities", ephemeral=True)
+                return
         else:
             faults = self.db.get_user_faults(user_id)
             profile['phone_number'].update(faults)
-        
-        # If the instagram parameter isn't specified, remove it from the profile
-        if not instagram_username and "instagram" in profile:
-            profile.pop("instagram")
-        if not cell_number and "phone_number" in profile:
-            profile.pop("phone_number")
-        
-        if instagram_username:
-            profile["instagram"]["username"] = instagram_username
-            profile["instagram"]["enabled"] = True
-        if cell_number:
-            failed_attempts = profile['phone_number'].get("failed_attempts", 0) + 1
-            if failed_attempts % 6 == 0:
-                await interaction.response.send_message("Phone related features have been disabled on this account. Please contact support for further instructions", ephemeral=True)
-                return
-            # validate the cell number
-            if not validate_phone_number(cell_number):
-                await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
-                return
-            profile["phone_number"]["number"] = sanitize_phone_number(cell_number)
-            profile['phone_number']['code'] = ''.join([str(random.randint(0, 9)) for _ in range(6)])
-            self.contact.confirm_user_number(profile["phone_number"]["number"], profile['phone_number']['code'])
+            
+    
+        failed_attempts = profile['phone_number'].get("failed_attempts", 0) + 1
+        if failed_attempts % 6 == 0:
+            await interaction.response.send_message("Phone related features have been disabled on this account. Please contact support for further instructions", ephemeral=True)
+            return
+        # validate the cell number
+        if not validate_phone_number(cell_number):
+            await interaction.response.send_message("Invalid phone number. Please try again. Note that this bot only supports Canadian phone numbers for SMS", ephemeral=True)
+            return
+        profile["phone_number"]["number"] = sanitize_phone_number(cell_number)
+        profile['phone_number']['code'] = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.contact.confirm_user_number(profile["phone_number"]["number"], profile['phone_number']['code'])
             
         if not self.db.is_user_in_db(user_id):
             self.db.add_user_to_db(user_id, profile)
-            await interaction.response.send_message("Successfully setup your profile! Make sure to follow [@ttbtrackr](https://www.instagram.com/ttbtrackr/) on Instagram and add (850) - 660 - 0835 to get notified when we send a message!", ephemeral=True)
+            self.db.add_blank_dlc(user_id)
+            vcf_file = nextcord.File("ttbtrackr.vcf")
+            await interaction.response.send_message("Successfully setup your profile! Remember to follow [@ttbtrackr](https://www.instagram.com/ttbtrackr/) on Instagram and add (850)-660-0835 to get notified when we send a message! \n*Tip: You can easily add TTBTrackr to your phone's contacts by downloading and opening this vcard file!*", ephemeral=True, file=vcf_file)
         else:
             self.db.update_user_profile(user_id, profile)
             await interaction.response.send_message("Your profile has been updated!", ephemeral=True)
@@ -77,33 +75,37 @@ class ProfilesCog(commands.Cog, name="Profiles"):
             await interaction.response.send_message("You don't have a profile to view!", ephemeral=True)
             return
         profile = self.db.get_user_profile(user_id)
+        dlc = self.db.get_user_dlc(user_id)
         embed = nextcord.Embed(title="Your TTBTrackr Profile", description="Here is your profile information", color=nextcord.Color.blue())
         
-        function_map = {"instagram": self._add_ig_to_profile, "phone_number": self._add_phone_to_profile}
+        function_map = {"phone_number": self._add_phone_to_profile}
         enabled_features = []
         # Add the user's discord profile picture
         embed.set_thumbnail(url=interaction.user.avatar.url if interaction.user.avatar else interaction.user.default_avatar.url)
         embed.add_field(name="Discord Username", value=f"{interaction.user.name}#{interaction.user.discriminator}", inline=False)
         for key in profile:
-            enabled_features.extend(function_map.get(key, lambda arg1, arg2: None)(embed, profile))
+            enabled_features.extend(function_map.get(key, lambda arg1, arg2, arg3: None)(embed, profile, dlc))
         embed.set_footer(text="You can edit your profile by using /profile edit")
         view = NotificationsView(user_id, embed, self.db, enabled_features)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
     
-    def _add_ig_to_profile(self, embed: nextcord.embeds.Embed, profile_data: dict):
-        embed.add_field(name="Instagram Username", value=f"[{profile_data['instagram']['username']}](https://instagram.com/{profile_data['instagram']['username']})", inline=False)
-        embed.add_field(name="Instagram Notifications:", value="On" if profile_data["instagram"]["enabled"] else "Off", inline=False)
-        return [("Toggle Instagram Notifications", "📸", len(embed.fields)-1, "instagram", "enabled")]
-    
-    def _add_phone_to_profile(self, embed: nextcord.embeds.Embed, profile_data: dict):
-        embed.add_field(name="Phone Number", value=f'||{profile_data["phone_number"]["number"]}||', inline=False)
-        embed.add_field(name="SMS Notifications:", value="On" if profile_data["phone_number"]["SMS"] else "Off", inline=False)
-        to_return = [("Toggle SMS Notifications", "💬", len(embed.fields)-1, "phone_number", "SMS")]
-        # Check to see if profile['phone_number']['call_notifications_active'] is true
-        if profile_data["phone_number"]["call_notifications_activated"]:
+    def _add_phone_to_profile(self, embed: nextcord.embeds.Embed, profile_data: dict, dlc: dict):
+        def _add_phone_calls():
             embed.add_field(name="Phonecall Notifications:", value="On" if profile_data["phone_number"]["call"] else "Off", inline=False)
             to_return.append(("Toggle Phonecall Notifications", "📞", len(embed.fields)-1, "phone_number", "call"))
+        
+        def _add_sms():
+            embed.add_field(name="SMS Notifications:", value="On" if profile_data["phone_number"]["SMS"] else "Off", inline=False)
+            to_return.append(("Toggle SMS Notifications", "💬", len(embed.fields)-1, "phone_number", "SMS"))
+            
+        embed.add_field(name="Phone Number", value=f'||{profile_data["phone_number"]["number"]}||', inline=False)            
         embed.add_field(name="Phone Number Confirmed:", value="Yes" if profile_data["phone_number"]["confirmed"] else "No **(You must confirm your number for phone-related notifications to activate)**", inline=False)
+        to_return = []
+        if dlc["call_enabled"]:
+            _add_phone_calls()
+        if dlc["SMS_enabled"]:
+            _add_sms()
+        
         return to_return
         
     @profile.subcommand(name="delete", description="Delete your profile")

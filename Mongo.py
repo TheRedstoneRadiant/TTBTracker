@@ -264,7 +264,9 @@ class Mongo:
         and adds the default allowed parameters
         """
         dlc = {"_id": user_id, "SMS_enabled": False, "call_enabled": False, "max_tracked_activities": 3}
-        self.dlc_collection.insert_one(dlc)
+        # check if the user already has a DLC profile
+        if self.dlc_collection.find_one({"_id": user_id}) is None:
+            self.dlc_collection.insert_one(dlc)
     
     def get_user_dlc(self, user_id: str) -> Dict[str, str]:
         """
